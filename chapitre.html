@@ -174,7 +174,7 @@
 <body>
     <div class="header">
         <h1 class="page-title" id="bookTitleDisplay">Chapters</h1>
-        <button class="add-chapter-btn" id="addChapterBtn">
+        <button class="add-chapter-btn" id="addChapterBtn" style="display: none;">
             <span>+</span> Add Chapter
         </button>
     </div>
@@ -187,15 +187,12 @@
 
     <script>
         // ★★★ PROTECTION ADMIN ★★★
-        const currentUser = localStorage.getItem('currentUser');
+        const currentUser = localStorage.getItem('username');
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
-        // Masquer les boutons admin si pas admin
-        if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
-            document.getElementById('addChapterBtn').style.display = 'none';
-            document.querySelectorAll('.action-btn[title="Delete"], .action-btn[title="Edit"]').forEach(btn => {
-                btn.style.display = 'none';
-            });
+        
+        // Afficher le bouton Add Chapter seulement pour l'admin
+        if (isAdmin && currentUser?.toLowerCase() === "monadmin") {
+            document.getElementById('addChapterBtn').style.display = 'flex';
         }
 
         // Get book ID from URL
@@ -245,7 +242,7 @@
                             <span class="chapter-number">${index + 1}.</span>
                             <span class="chapter-title">${chapter.title}</span>
                         </div>
-                        ${isAdmin ? `
+                        ${isAdmin && currentUser?.toLowerCase() === "monadmin" ? `
                         <div class="chapter-actions">
                             <button class="action-btn" title="Edit" onclick="event.stopPropagation(); window.location.href='write.html?bookId=${bookId}&chapterId=${chapter.id}'">✏️</button>
                             <button class="action-btn" title="Delete" onclick="event.stopPropagation(); deleteChapter('${bookId}', '${chapter.id}')">🗑️</button>

@@ -476,5 +476,27 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', loadChapterData);
     </script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyA4k7GbldnDhtIPRv8kKRwoEDN_DuY98mY",
+    authDomain: "l-atelier-des-mots-perdus.firebaseapp.com",
+    projectId: "l-atelier-des-mots-perdus",
+    storageBucket: "l-atelier-des-mots-perdus.firebasestorage.app",
+    messagingSenderId: "650951833648",
+    appId: "1:650951833648:web:79b0b7364097e632de15f5",
+    measurementId: "G-B285CYHJPY"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </body>
 </html>

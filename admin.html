@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,8 +161,8 @@
                 <div class="stat-label">Chapters</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalUniqueViews">0</div>
-                <div class="stat-label">Unique Views</div>
+                <div class="stat-number" id="totalViews">0</div>
+                <div class="stat-label">Total Views</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalComments">0</div>
@@ -174,7 +173,7 @@
                 <div class="stat-label">Likes</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalUniqueUsers">0</div>
+                <div class="stat-number" id="totalUsers">0</div>
                 <div class="stat-label">Unique Users</div>
             </div>
         </div>
@@ -200,7 +199,7 @@
             <table id="commentsTable">
                 <thead>
                     <tr>
-                        <th>Content</th>
+                        <th>Book</th>
                         <th>Author</th>
                         <th>Comment</th>
                         <th>Date</th>
@@ -212,14 +211,14 @@
         </div>
 
         <div class="admin-section">
-            <h2 class="section-title">Most Liked Content</h2>
-            <table id="likesTable">
+            <h2 class="section-title">Recent Visitors</h2>
+            <table id="visitorsTable">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Likes</th>
-                        <th>Actions</th>
+                        <th>Username</th>
+                        <th>Last Visit</th>
+                        <th>Device</th>
+                        <th>Page</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -242,156 +241,58 @@
                 <tbody></tbody>
             </table>
         </div>
-
-        <div class="admin-section">
-            <h2 class="section-title">Recent Visitors</h2>
-            <table id="visitorsTable">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Last Visit</th>
-                        <th>Device</th>
-                        <th>Page</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
     </div>
 
     <script>
         // ★★★ ADMIN PROTECTION ★★★
-        const allowedAdmins = ["monadmin"];
-        const currentUser = localStorage.getItem('currentUser');
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = localStorage.getItem('username');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-        if (!isAdmin || !allowedAdmins.includes(currentUser?.toLowerCase())) {
-            document.body.innerHTML = `
-                <div style="text-align:center; padding:50px; font-family:Arial;">
-                    <h1 style="color:#2a5c3d;">Access Denied</h1>
-                    <p>Admin privileges required.</p>
-                    <a href="mylibrary.html" style="color:var(--main-green);">Return to Library</a>
-                </div>
-            `;
-            throw new Error("Unauthorized access");
-        }
-
-        // ★★★ VISITOR TRACKING SYSTEM ★★★
-        function trackVisit(username = 'Guest') {
-            const visitKey = `visitor_${username}`;
-            const visitData = {
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                page: window.location.pathname.replace('.html', '')
-            };
-            localStorage.setItem(visitKey, JSON.stringify(visitData));
-        }
-
-        // ★★★ LOAD VISITORS ★★★
-        function loadVisitors() {
-            const visitors = [];
-            const allKeys = Object.keys(localStorage);
-
-            allKeys.forEach(key => {
-                if (key.startsWith('visitor_')) {
-                    const username = key.replace('visitor_', '');
-                    const data = JSON.parse(localStorage.getItem(key));
-                    visitors.push({
-                        username,
-                        lastVisit: new Date(data.timestamp).toLocaleString(),
-                        device: data.userAgent.match(/\((.*?)\)/)[1] || 'Unknown',
-                        page: data.page
-                    });
-                }
-            });
-
-            visitors.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
-
-            const tableBody = document.querySelector('#visitorsTable tbody');
-            tableBody.innerHTML = visitors.slice(0, 20).map(visitor => `
-                <tr>
-                    <td>${visitor.username}</td>
-                    <td>${visitor.lastVisit}</td>
-                    <td>${visitor.device}</td>
-                    <td>${visitor.page}</td>
-                    <td>
-                        <button class="action-btn" onclick="deleteVisitor('${visitor.username}')">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            document.getElementById('totalUniqueUsers').textContent = visitors.length;
-        }
-
-        function deleteVisitor(username) {
-            if (confirm(`Delete all records for ${username}?`)) {
-                localStorage.removeItem(`visitor_${username}`);
-                loadVisitors();
+            if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
+                document.body.innerHTML = `
+                    <div style="text-align:center; padding:50px; font-family:Arial;">
+                        <h1 style="color:#2a5c3d;">Access Denied</h1>
+                        <p>Admin privileges required.</p>
+                        <a href="mylibrary.html" style="color:var(--main-green);">Return to Library</a>
+                    </div>
+                `;
+                return;
             }
-        }
 
-        // ★★★ MAIN DATA LOADER ★★★
+            loadAdminData();
+        });
+
+        // ★★★ LOAD STATISTICS ★★★
         function loadAdminData() {
+            // Load books data
             const books = JSON.parse(localStorage.getItem('books')) || [];
             document.getElementById('totalBooks').textContent = books.length;
 
+            // Initialize counters
             let totalChapters = 0;
             let totalViews = 0;
             let totalComments = 0;
             let totalLikes = 0;
+            const visitors = new Set();
             const popularBooks = [];
             const allComments = [];
-            const likedContent = [];
 
-            // Process books
+            // Process books and chapters
             books.forEach(book => {
                 // Book views
                 const viewsKey = `book_${book.id}_views`;
-                const viewsData = JSON.parse(localStorage.getItem(viewsKey)) || { count: 0 };
-                totalViews += viewsData.count;
+                const bookViews = parseInt(localStorage.getItem(viewsKey)) || 0;
+                totalViews += bookViews;
 
                 // Book likes
                 const likesKey = `book_${book.id}_likes`;
-                const likesData = JSON.parse(localStorage.getItem(likesKey)) || { count: 0 };
-                totalLikes += likesData.count;
+                const bookLikes = JSON.parse(localStorage.getItem(likesKey)) || {count: 0};
+                totalLikes += bookLikes.count;
 
-                // Chapters
-                const chapters = JSON.parse(localStorage.getItem(`book_${book.id}_chapters`)) || [];
-                totalChapters += chapters.length;
-
-                // Process chapters
-                chapters.forEach((chapter, index) => {
-                    // Chapter views
-                    const chapterViewsKey = `book_${book.id}_chapter_${index}_views`;
-                    const chapterViews = JSON.parse(localStorage.getItem(chapterViewsKey)) || { count: 0 };
-                    totalViews += chapterViews.count;
-
-                    // Chapter comments
-                    const commentsKey = `book_${book.id}_chapter_${index}_comments`;
-                    const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
-                    totalComments += comments.length;
-                    comments.forEach(comment => {
-                        allComments.push({
-                            book: book.title,
-                            chapter: `Ch.${index + 1}: ${chapter.title}`,
-                            ...comment
-                        });
-                    });
-
-                    // Chapter likes
-                    const chapterLikesKey = `book_${book.id}_chapter_${index}_likes`;
-                    const chapterLikes = JSON.parse(localStorage.getItem(chapterLikesKey)) || { count: 0 };
-                    totalLikes += chapterLikes.count;
-                    if (chapterLikes.count > 0) {
-                        likedContent.push({
-                            title: `${book.title} - Ch.${index + 1}`,
-                            type: 'Chapter',
-                            likes: chapterLikes.count,
-                            id: book.id
-                        });
-                    }
-                });
+                // Track visitors from views
+                const viewUsers = JSON.parse(localStorage.getItem(`book_${book.id}_viewers`)) || [];
+                viewUsers.forEach(user => visitors.add(user));
 
                 // Book comments
                 const bookComments = JSON.parse(localStorage.getItem(`book_${book.id}_comments`)) || [];
@@ -399,43 +300,83 @@
                 bookComments.forEach(comment => {
                     allComments.push({
                         book: book.title,
-                        chapter: 'Book Page',
-                        ...comment
+                        author: comment.author,
+                        text: comment.text,
+                        date: comment.date
                     });
                 });
 
-                // Popular books
-                if (viewsData.count > 0 || likesData.count > 0) {
-                    popularBooks.push({
-                        ...book,
-                        views: viewsData.count,
-                        likes: likesData.count
-                    });
-                }
+                // Chapters data
+                const chaptersKey = `book_${book.id}_chapters`;
+                const chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
+                totalChapters += chapters.length;
 
-                // Liked books
-                if (likesData.count > 0) {
-                    likedContent.push({
+                chapters.forEach((chapter, index) => {
+                    // Chapter views
+                    const chapterViewsKey = `book_${book.id}_chapter_${index}_views`;
+                    const chapterViews = parseInt(localStorage.getItem(chapterViewsKey)) || 0;
+                    totalViews += chapterViews;
+
+                    // Chapter likes
+                    const chapterLikesKey = `book_${book.id}_chapter_${index}_likes`;
+                    const chapterLikes = JSON.parse(localStorage.getItem(chapterLikesKey)) || {count: 0};
+                    totalLikes += chapterLikes.count;
+
+                    // Chapter comments
+                    const chapterComments = JSON.parse(localStorage.getItem(`book_${book.id}_chapter_${index}_comments`)) || [];
+                    totalComments += chapterComments.length;
+                    chapterComments.forEach(comment => {
+                        allComments.push({
+                            book: `${book.title} - Ch.${index+1}`,
+                            author: comment.author,
+                            text: comment.text,
+                            date: comment.date
+                        });
+                    });
+                });
+
+                // Add to popular books
+                if (bookViews > 0 || bookLikes.count > 0) {
+                    popularBooks.push({
+                        id: book.id,
                         title: book.title,
-                        type: 'Book',
-                        likes: likesData.count,
-                        id: book.id
+                        author: book.author || 'Unknown',
+                        views: bookViews,
+                        likes: bookLikes.count
                     });
                 }
             });
 
-            // Update stats
+            // Load all visitors
+            const allKeys = Object.keys(localStorage);
+            const visitorData = [];
+            
+            allKeys.forEach(key => {
+                if (key.startsWith('visitor_')) {
+                    const username = key.replace('visitor_', '');
+                    const data = JSON.parse(localStorage.getItem(key));
+                    visitorData.push({
+                        username: username,
+                        lastVisit: new Date(data.timestamp).toLocaleString(),
+                        device: data.userAgent.match(/\((.*?)\)/)[1] || 'Unknown',
+                        page: data.page
+                    });
+                    visitors.add(username);
+                }
+            });
+
+            // Update statistics
             document.getElementById('totalChapters').textContent = totalChapters;
-            document.getElementById('totalUniqueViews').textContent = totalViews;
+            document.getElementById('totalViews').textContent = totalViews;
             document.getElementById('totalComments').textContent = totalComments;
             document.getElementById('totalLikes').textContent = totalLikes;
+            document.getElementById('totalUsers').textContent = visitors.size;
 
             // Populate tables
             populatePopularBooks(popularBooks);
             populateComments(allComments);
-            populateLikedContent(likedContent);
+            populateVisitors(visitorData);
             populateAllBooks(books);
-            loadVisitors();
         }
 
         // ★★★ TABLE POPULATORS ★★★
@@ -445,7 +386,7 @@
             tbody.innerHTML = books.slice(0, 5).map(book => `
                 <tr>
                     <td>${book.title}</td>
-                    <td>${book.author || 'Unknown'}</td>
+                    <td>${book.author}</td>
                     <td>${book.views}</td>
                     <td>${book.likes}</td>
                     <td>
@@ -461,10 +402,7 @@
             comments.sort((a, b) => new Date(b.date) - new Date(a.date));
             tbody.innerHTML = comments.slice(0, 10).map(comment => `
                 <tr>
-                    <td>
-                        <strong>${comment.book}</strong><br>
-                        <small>${comment.chapter}</small>
-                    </td>
+                    <td>${comment.book}</td>
                     <td>${comment.author}</td>
                     <td>${comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text}</td>
                     <td>${comment.date}</td>
@@ -475,17 +413,15 @@
             `).join('');
         }
 
-        function populateLikedContent(content) {
-            const tbody = document.querySelector('#likesTable tbody');
-            content.sort((a, b) => b.likes - a.likes);
-            tbody.innerHTML = content.slice(0, 5).map(item => `
+        function populateVisitors(visitors) {
+            const tbody = document.querySelector('#visitorsTable tbody');
+            visitors.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
+            tbody.innerHTML = visitors.slice(0, 20).map(visitor => `
                 <tr>
-                    <td>${item.title}</td>
-                    <td>${item.type}</td>
-                    <td>${item.likes}</td>
-                    <td>
-                        <button class="action-btn" onclick="location.href='${item.type === 'Book' ? 'book' : 'livre'}.html?id=${item.id}'">👁️</button>
-                    </td>
+                    <td>${visitor.username}</td>
+                    <td>${visitor.lastVisit}</td>
+                    <td>${visitor.device}</td>
+                    <td>${visitor.page}</td>
                 </tr>
             `).join('');
         }
@@ -493,14 +429,14 @@
         function populateAllBooks(books) {
             const tbody = document.querySelector('#booksTable tbody');
             tbody.innerHTML = books.map(book => {
-                const views = JSON.parse(localStorage.getItem(`book_${book.id}_views`)) || { count: 0 };
-                const likes = JSON.parse(localStorage.getItem(`book_${book.id}_likes`)) || { count: 0 };
+                const views = parseInt(localStorage.getItem(`book_${book.id}_views`)) || 0;
+                const likes = JSON.parse(localStorage.getItem(`book_${book.id}_likes`)) || {count: 0};
                 return `
                     <tr>
                         <td>${book.title}</td>
                         <td>${book.author || 'Unknown'}</td>
                         <td>${new Date(parseInt(book.id)).toLocaleDateString()}</td>
-                        <td>${views.count}</td>
+                        <td>${views}</td>
                         <td>${likes.count}</td>
                         <td>
                             <button class="action-btn" onclick="location.href='book.html?id=${book.id}'">👁️</button>
@@ -529,17 +465,28 @@
 
         function deleteComment(bookTitle, commentDate) {
             if (confirm("Delete this comment?")) {
-                // Implementation depends on your storage structure
-                alert("Comment deletion would be implemented here");
+                // Find and delete comment from storage
+                const books = JSON.parse(localStorage.getItem('books')) || [];
+                books.forEach(book => {
+                    // Check book comments
+                    const bookCommentsKey = `book_${book.id}_comments`;
+                    let bookComments = JSON.parse(localStorage.getItem(bookCommentsKey)) || [];
+                    bookComments = bookComments.filter(c => !(book.title === bookTitle && c.date === commentDate));
+                    localStorage.setItem(bookCommentsKey, JSON.stringify(bookComments));
+
+                    // Check chapter comments
+                    const chaptersKey = `book_${book.id}_chapters`;
+                    const chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
+                    chapters.forEach((chapter, index) => {
+                        const chapterCommentsKey = `book_${book.id}_chapter_${index}_comments`;
+                        let chapterComments = JSON.parse(localStorage.getItem(chapterCommentsKey)) || [];
+                        chapterComments = chapterComments.filter(c => !(`${book.title} - Ch.${index+1}` === bookTitle && c.date === commentDate));
+                        localStorage.setItem(chapterCommentsKey, JSON.stringify(chapterComments));
+                    });
+                });
                 loadAdminData();
             }
         }
-
-        // ★★★ INITIALIZATION ★★★
-        document.addEventListener('DOMContentLoaded', () => {
-            if (currentUser) trackVisit(currentUser);
-            loadAdminData();
-        });
     </script>
 </body>
 </html>

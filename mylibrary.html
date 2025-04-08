@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Library - GreenLeaf</title>
+    <title>Book - GreenLeaf Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -115,6 +115,7 @@
             top: 10px;
             right: 10px;
             z-index: 10;
+            display: none;
         }
 
         .menu-btn {
@@ -233,17 +234,46 @@
             color: var(--main-green);
             border: 1px solid var(--main-green);
         }
+
+        /* Admin only elements */
+        .admin-only {
+            display: none;
+        }
+
+        /* Show admin elements if user is admin */
+        body.admin .admin-only {
+            display: block;
+        }
+
+        /* Delete button style */
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+
+        body.admin .delete-btn {
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1 class="library-title">My Library</h1>
         <div class="action-buttons">
-            <button class="action-btn" id="openModalBtn" data-admin-only>
+            <button class="action-btn admin-only" id="openModalBtn">
                 <span>+</span> Add a Book
             </button>
-            <button class="action-btn" onclick="location.href='admin.html'" data-admin-only>
+            <button class="action-btn admin-only" onclick="location.href='admin.html'">
                 <span>⚙️</span> Admin
+            </button>
+            <button class="action-btn" onclick="window.location.href='mylibrary.html'">
+                ← Back to Library
             </button>
         </div>
     </div>
@@ -284,21 +314,17 @@
     <script>
         // ★★★ ADMIN SECURITY CHECK ★★★
         function isAdmin() {
-            const currentUser = localStorage.getItem('currentUser');
+            const currentUser = localStorage.getItem('username');
             const isAdminFlag = localStorage.getItem('isAdmin') === 'true';
             return isAdminFlag && currentUser?.toLowerCase() === "monadmin";
         }
 
-        // Hide admin elements for non-admin users
-        function hideAdminElements() {
-            if (!isAdmin()) {
-                document.querySelectorAll('[data-admin-only]').forEach(el => {
-                    el.style.display = 'none';
-                });
-            }
+        // Set admin class on body if user is admin
+        if (isAdmin()) {
+            document.body.classList.add('admin');
         }
 
-        // Load books with admin checks
+        // Load books from localStorage
         function loadBooks() {
             const books = JSON.parse(localStorage.getItem('books')) || [];
             const booksGrid = document.getElementById('booksGrid');
@@ -306,26 +332,32 @@
             booksGrid.innerHTML = books.map(book => `
                 <div class="book-card">
                     <div class="book-cover" onclick="window.location.href='book.html?id=${book.id}'" 
-                         style="background-image: url('${book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')"></div>
+                         style="background-image: url('${book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')">
+                        ${isAdmin() ? `
+                        <div class="book-menu">
+                            <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
+                            <div class="menu-dropdown">
+                                <a href="book.html?id=${book.id}">View</a>
+                                <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
+                                <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
                     <div class="book-info" onclick="window.location.href='book.html?id=${book.id}'">
                         <div class="book-title">${book.title}</div>
                         <div class="book-author">By ${book.author || 'Unknown Author'}</div>
+                        ${isAdmin() ? `
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')">
+                            Delete Book
+                        </button>
+                        ` : ''}
                     </div>
-                    ${isAdmin() ? `
-                    <div class="book-menu">
-                        <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
-                        <div class="menu-dropdown">
-                            <a href="book.html?id=${book.id}">View</a>
-                            <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
-                            <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
-                        </div>
-                    </div>
-                    ` : ''}
                 </div>
             `).join('');
         }
 
-        // Modal management with admin checks
+        // Modal management
         const modal = document.getElementById('addBookModal');
         const openModalBtn = document.getElementById('openModalBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -491,30 +523,7 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            hideAdminElements();
-            loadBooks();
-        });
-    // Injecter un livre de démo s’il n’y en a aucun
-    const defaultBookId = 1;
-
-    if (!localStorage.getItem('books')) {
-        const defaultBooks = [{
-            id: defaultBookId,
-            title: "Livre Démo",
-            author: "monadmin"
-        }];
-        localStorage.setItem('books', JSON.stringify(defaultBooks));
-
-        const defaultChapters = [{
-            id: Date.now(),
-            title: "Chapitre 1",
-            content: "Bienvenue dans le premier chapitre de la démo.",
-            date: new Date().toISOString()
-        }];
-        localStorage.setItem(`book_${defaultBookId}_chapters`, JSON.stringify(defaultChapters));
-    }
-
+        document.addEventListener('DOMContentLoaded', loadBooks);
     </script>
 </body>
 </html>

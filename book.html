@@ -46,9 +46,13 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex;
+            display: none;
             gap: 10px;
             z-index: 10;
+        }
+
+        body.admin .cover-controls {
+            display: flex;
         }
 
         .cover-btn {
@@ -339,16 +343,28 @@
     </div>
 
     <script>
-        // ★★★ PROTECTION ADMIN ★★★
-        const currentUser = localStorage.getItem('currentUser');
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        // ★★★ ADMIN CHECK ★★★
+        function checkAdminStatus() {
+            const currentUser = localStorage.getItem('username');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            
+            console.log('Admin Check:', {
+                user: currentUser,
+                isAdmin: isAdmin,
+                isMonAdmin: currentUser?.toLowerCase() === 'monadmin'
+            });
 
-        if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
-            document.querySelector('.cover-controls').style.display = 'none';
+            if (currentUser && currentUser.toLowerCase() === 'monadmin' && isAdmin) {
+                document.body.classList.add('admin');
+                return true;
+            }
+            return false;
         }
 
         // Load book data
         function loadBookData() {
+            checkAdminStatus(); // Check admin first
+            
             const urlParams = new URLSearchParams(window.location.search);
             const bookId = urlParams.get('id');
             
@@ -361,20 +377,15 @@
                     document.getElementById('bookAuthor').textContent = `By ${book.author || 'Unknown Author'}`;
                     document.getElementById('bookDescription').textContent = book.description || 'No description available';
                     
-                    // Check if there's a modified cover for this book
+                    // Check for modified cover
                     const modifiedCoverKey = `book_${bookId}_modified_cover`;
                     const modifiedCover = localStorage.getItem(modifiedCoverKey);
                     
-                    // Use modified cover if it exists, otherwise original cover
-                    document.getElementById('bookCover').style.backgroundImage = `url('${modifiedCover || book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')`;
+                    document.getElementById('bookCover').style.backgroundImage = 
+                        `url('${modifiedCover || book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')`;
                     
-                    // Load likes
                     updateLikeCount(bookId);
-                    
-                    // Load comments
                     loadComments(bookId);
-                    
-                    // Track view
                     trackView(bookId);
                 }
             }
@@ -392,7 +403,7 @@
             localStorage.setItem(viewsKey, views);
         }
         
-        // Like/Unlike functionality
+        // Like functionality
         function updateLikeCount(bookId) {
             const likesKey = `book_${bookId}_likes`;
             const userLikesKey = `user_${localStorage.getItem('username') || 'anonymous'}_likes_${bookId}`;
@@ -400,7 +411,6 @@
             
             document.getElementById('likeCount').textContent = likes.count;
             
-            // Update button appearance
             const likeBtn = document.getElementById('likeBtn');
             if (likes.users[userLikesKey]) {
                 likeBtn.style.backgroundColor = '#e8f5e9';
@@ -422,13 +432,11 @@
                 const hasLiked = likes.users[userLikesKey];
                 
                 if (hasLiked) {
-                    // Unlike
                     likes.count--;
                     delete likes.users[userLikesKey];
                     this.style.backgroundColor = '';
                     this.style.color = '';
                 } else {
-                    // Like
                     likes.count++;
                     likes.users[userLikesKey] = true;
                     this.style.backgroundColor = '#e8f5e9';
@@ -440,7 +448,7 @@
             }
         });
         
-        // Load comments with delete options
+        // Comments functionality
         function loadComments(bookId) {
             const commentsContainer = document.getElementById('commentsContainer');
             const comments = JSON.parse(localStorage.getItem(`book_${bookId}_comments`)) || [];
@@ -468,7 +476,6 @@
             }).join('');
         }
         
-        // Delete comment
         function deleteComment(bookId, commentIndex) {
             if (confirm("Delete this comment?")) {
                 const commentsKey = `book_${bookId}_comments`;
@@ -477,11 +484,12 @@
                 localStorage.setItem(commentsKey, JSON.stringify(comments));
                 loadComments(bookId);
             }
-            return false;
         }
         
-        // Change cover from local file
+        // Admin functions
         function changeCover() {
+            if (!checkAdminStatus()) return;
+            
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -493,22 +501,19 @@
                     const newCoverUrl = event.target.result;
                     document.getElementById('bookCover').style.backgroundImage = `url('${newCoverUrl}')`;
                     
-                    // Save to localStorage without modifying the original book object
                     const bookId = getBookId();
-                    
                     if (bookId) {
-                        const modifiedCoverKey = `book_${bookId}_modified_cover`;
-                        localStorage.setItem(modifiedCoverKey, newCoverUrl);
+                        localStorage.setItem(`book_${bookId}_modified_cover`, newCoverUrl);
                     }
                 };
                 reader.readAsDataURL(file);
             };
-            
             input.click();
         }
         
-        // Edit description
         function editDescription() {
+            if (!checkAdminStatus()) return;
+            
             const currentDesc = document.getElementById('bookDescription').textContent;
             const newDesc = prompt("Edit book description:", currentDesc);
             
@@ -516,11 +521,9 @@
                 document.getElementById('bookDescription').textContent = newDesc;
                 
                 const bookId = getBookId();
-                
                 if (bookId) {
                     const books = JSON.parse(localStorage.getItem('books')) || [];
                     const bookIndex = books.findIndex(b => b.id == bookId);
-                    
                     if (bookIndex !== -1) {
                         books[bookIndex].description = newDesc;
                         localStorage.setItem('books', JSON.stringify(books));
@@ -544,7 +547,7 @@
             }
         });
         
-        // Comment functionality
+        // Comment form
         document.getElementById('commentForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -552,7 +555,6 @@
             if (!commentText) return;
             
             const bookId = getBookId();
-            
             if (bookId) {
                 const commentsKey = `book_${bookId}_comments`;
                 const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];

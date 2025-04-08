@@ -1,53 +1,9 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- [Tout le CSS original ici - inchangé] -->
-    <style>
-        /* [Coller tout le CSS original de index.html ici] */
-    </style>
-</head>
-<body>
-    <div class="book-background"></div>
-    
-    <div class="floating-books">
-        <!-- [Contenu original des livres flottants] -->
-    </div>
-
-    <div class="main-content">
-        <h1 class="main-title">GreenLeaf Library</h1>
-        <p class="subtitle">Step into a world of endless stories...</p>
-        
-        <div class="username-form" style="margin-bottom: 20px;">
-            <input type="text" id="username" placeholder="Enter your name" 
-                   style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; width: 250px; max-width: 80%;">
-        </div>
-        
-        <button class="enter-button" id="enterBtn">Enter the Library</button>
-    </div>
-
-    <script>
-        // Validation du nom
-        document.getElementById('enterBtn').addEventListener('click', function() {
-            const username = document.getElementById('username').value.trim();
-            if(!username) {
-                alert('Please enter your name to continue');
-                return;
-            }
-            localStorage.setItem('username', username);
-            window.location.href = 'mylibrary.html';
-        });
-
-        // [Script original des livres flottants]
-    </script>
-</body>
-</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenLeaf Library - Enchanted Book Haven</title>
+    <title>GreenLeaf Library</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -67,7 +23,6 @@
             position: relative;
         }
 
-        /* Arrière-plan avec livres */
         .book-background {
             position: absolute;
             width: 100%;
@@ -80,7 +35,6 @@
             filter: grayscale(80%) sepia(30%);
         }
 
-        /* Contenu principal */
         .main-content {
             display: flex;
             flex-direction: column;
@@ -91,7 +45,6 @@
             padding: 0 20px;
         }
 
-        /* Titre principal */
         .main-title {
             font-family: 'Cinzel Decorative', cursive;
             font-size: 6rem;
@@ -112,7 +65,6 @@
             margin: 20px auto;
         }
 
-        /* Sous-titre */
         .subtitle {
             font-size: 1.5rem;
             color: #555;
@@ -121,7 +73,6 @@
             animation: fadeIn 2s ease;
         }
 
-        /* Bouton d'entrée */
         .enter-button {
             background: var(--main-green);
             color: white;
@@ -141,7 +92,6 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
-        /* Animation des livres flottants */
         .floating-books {
             position: absolute;
             width: 100%;
@@ -155,7 +105,17 @@
             animation: float 15s infinite linear;
         }
 
-        /* Animations */
+        /* Style pour le champ code admin (caché par défaut) */
+        .admin-code-field {
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 250px;
+            max-width: 80%;
+            margin-bottom: 10px;
+        }
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -190,7 +150,6 @@
             }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .main-title {
                 font-size: 4rem;
@@ -202,10 +161,8 @@
     </style>
 </head>
 <body>
-    <!-- Arrière-plan avec texture de livres -->
     <div class="book-background"></div>
-
-    <!-- Livres flottants décoratifs -->
+    
     <div class="floating-books">
         <div class="floating-book" style="top: 20%; left: 10%;">
             📘
@@ -221,15 +178,68 @@
         </div>
     </div>
 
-    <!-- Contenu principal -->
     <div class="main-content">
         <h1 class="main-title">GreenLeaf Library</h1>
-        <p class="subtitle">Step into a world of endless stories where each book is a portal to magical realms</p>
-        <button class="enter-button" onclick="window.location.href='library.html'">Enter the Library</button>
+        <p class="subtitle">Step into a world of endless stories...</p>
+        
+        <div class="username-form" style="margin-bottom: 20px;">
+            <input type="text" id="username" placeholder="Enter your name" 
+                   style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; width: 250px; max-width: 80%;">
+            <input type="password" class="admin-code-field" id="adminCode" placeholder="Enter admin code (123niha456ROMA)">
+        </div>
+        
+        <button class="enter-button" id="enterBtn">Enter the Library</button>
     </div>
 
     <script>
-        // Créer des livres flottants supplémentaires dynamiquement
+        // Afficher le champ code admin seulement quand on tape "monadmin"
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value.trim().toLowerCase();
+            const adminCodeField = document.getElementById('adminCode');
+            
+            if (username === 'monadmin') {
+                adminCodeField.style.display = 'block';
+            } else {
+                adminCodeField.style.display = 'none';
+            }
+        });
+
+        // Validation de la connexion
+        document.getElementById('enterBtn').addEventListener('click', function() {
+            const username = document.getElementById('username').value.trim();
+            const adminCode = document.getElementById('adminCode').value;
+            
+            if(!username) {
+                alert('Please enter your name to continue');
+                return;
+            }
+            
+            // Vérification si c'est l'admin
+            if (username.toLowerCase() === 'monadmin') {
+                if (adminCode === '123niha456ROMA') {
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('isAdmin', 'true');
+                    alert('Welcome Admin!');
+                    window.location.href = 'mylibrary.html';
+                } else {
+                    alert('Incorrect admin code');
+                    return;
+                }
+            } else {
+                localStorage.setItem('username', username);
+                localStorage.setItem('isAdmin', 'false');
+                window.location.href = 'mylibrary.html';
+            }
+        });
+
+        // Permettre d'utiliser la touche Entrée pour valider
+        document.getElementById('adminCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('enterBtn').click();
+            }
+        });
+
+        // Créer des livres flottants supplémentaires
         document.addEventListener('DOMContentLoaded', function() {
             const floatingBooks = document.querySelector('.floating-books');
             const bookEmojis = ['📘', '📗', '📕', '📙', '📓', '📔', '📒'];
@@ -249,60 +259,3 @@
     </script>
 </body>
 </html>
-<div class="username-form" style="margin-bottom: 20px;">
-    <input type="text" id="username" placeholder="Enter your name" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; width: 250px; max-width: 80%;">
-</div>
-
-<a href="mylibrary.html" class="enter-button">Entrer dans la bibliothèque</a>
-<!-- Dans index.html -->
-<div class="login-form">
-    <input type="text" id="username" placeholder="Votre nom">
-    <input type="password" id="password" placeholder="Mot de passe (optionnel)">
-    <button id="loginBtn">Entrer</button>
-</div>
-
-<script>
-document.getElementById('loginBtn').addEventListener('click', function() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    
-    if (!username) {
-        alert('Veuillez entrer un nom');
-        return;
-    }
-    
-    // Enregistrement de l'utilisateur
-    localStorage.setItem('currentUser', username);
-    
-    // Vérification admin (mot de passe simple)
-    if (password === "votreMotDePasseSecret") {
-        localStorage.setItem('isAdmin', 'true');
-    } else {
-        localStorage.setItem('isAdmin', 'false');
-    }
-    
-    window.location.href = 'mylibrary.html';
-});
-</script>
-<!-- write.html -->
-<body>
-  <!-- ... votre contenu existant ... -->
-
-  <script>
-  // ★★★ DÉBUT PROTECTION - COLLER AU DÉBUT DU SCRIPT ★★★
-  const ADMIN_REQUIRED = "MonNomAdmin"; // Doit être identique à index.html
-  
-  if (localStorage.getItem('currentUser') !== ADMIN_REQUIRED || 
-      localStorage.getItem('isAdmin') !== 'true') {
-      document.body.innerHTML = `
-          <div style="text-align:center; padding:50px; font-family:Arial;">
-              <h1 style="color:#d32f2f;">Accès réservé au créateur</h1>
-              <a href="mylibrary.html" style="color:#2a5c3d;">Retour</a>
-          </div>`;
-      throw new Error("Accès non autorisé");
-  }
-  // ★★★ FIN PROTECTION ★★★
-
-  // ... (votre code existant pour write.html)
-  </script>
-</body>

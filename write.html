@@ -60,7 +60,7 @@
     <script>
         // ★★★ PROTECTION ADMIN ★★★
         document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = localStorage.getItem('currentUser');
+            const currentUser = localStorage.getItem('username');
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
             if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
@@ -108,7 +108,13 @@
                 id: Date.now(),
                 title: title,
                 content: content,
-                date: new Date().toISOString()
+                date: new Date().toLocaleDateString('fr-FR', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
             };
             
             // Sauvegarder le chapitre
