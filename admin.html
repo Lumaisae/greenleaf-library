@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - GreenLeaf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-green: #2a5c3d;
+            --light-green: #e8f5e9;
+            --gold: #d4af37;
+            --cream: #fffef6;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--cream);
+            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: rgba(255, 254, 246, 0.9);
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .page-title {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--main-green);
+            margin: 0;
+            font-size: 2.2rem;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--gold);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            color: var(--main-green);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--main-green);
+            font-size: 1.1rem;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--main-green);
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: var(--light-green);
+            color: var(--main-green);
+        }
+
+        tr:hover {
+            background-color: rgba(232, 245, 233, 0.5);
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 1.1rem;
+            color: var(--main-green);
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .view-count {
+            font-weight: bold;
+            color: var(--main-green);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="page-title">Admin Panel</h1>
+    </div>
+
+    <div class="admin-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">Books</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalChapters">0</div>
+                <div class="stat-label">Chapters</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalUniqueViews">0</div>
+                <div class="stat-label">Unique Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalComments">0</div>
+                <div class="stat-label">Comments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalLikes">0</div>
+                <div class="stat-label">Likes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalUniqueUsers">0</div>
+                <div class="stat-label">Unique Users</div>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title">Most Popular Books</h2>
+            <table id="popularBooksTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Views</th>
+                        <th>Likes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title">Recent Comments</h2>
+            <table id="commentsTable">
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Author</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title">Most Liked Content</h2>
+            <table id="likesTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Likes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title">All Books</h2>
+            <table id="booksTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Created</th>
+                        <th>Views</th>
+                        <th>Likes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title">Recent Visitors</h2>
+            <table id="visitorsTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Last Visit</th>
+                        <th>Device</th>
+                        <th>Page</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ★★★ ADMIN PROTECTION ★★★
+        const allowedAdmins = ["monadmin"];
+        const currentUser = localStorage.getItem('currentUser');
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+        if (!isAdmin || !allowedAdmins.includes(currentUser?.toLowerCase())) {
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px; font-family:Arial;">
+                    <h1 style="color:#2a5c3d;">Access Denied</h1>
+                    <p>Admin privileges required.</p>
+                    <a href="mylibrary.html" style="color:var(--main-green);">Return to Library</a>
+                </div>
+            `;
+            throw new Error("Unauthorized access");
+        }
+
+        // ★★★ VISITOR TRACKING SYSTEM ★★★
+        function trackVisit(username = 'Guest') {
+            const visitKey = `visitor_${username}`;
+            const visitData = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                page: window.location.pathname.replace('.html', '')
+            };
+            localStorage.setItem(visitKey, JSON.stringify(visitData));
+        }
+
+        // ★★★ LOAD VISITORS ★★★
+        function loadVisitors() {
+            const visitors = [];
+            const allKeys = Object.keys(localStorage);
+
+            allKeys.forEach(key => {
+                if (key.startsWith('visitor_')) {
+                    const username = key.replace('visitor_', '');
+                    const data = JSON.parse(localStorage.getItem(key));
+                    visitors.push({
+                        username,
+                        lastVisit: new Date(data.timestamp).toLocaleString(),
+                        device: data.userAgent.match(/\((.*?)\)/)[1] || 'Unknown',
+                        page: data.page
+                    });
+                }
+            });
+
+            visitors.sort((a, b) => new Date(b.lastVisit) - new Date(a.lastVisit));
+
+            const tableBody = document.querySelector('#visitorsTable tbody');
+            tableBody.innerHTML = visitors.slice(0, 20).map(visitor => `
+                <tr>
+                    <td>${visitor.username}</td>
+                    <td>${visitor.lastVisit}</td>
+                    <td>${visitor.device}</td>
+                    <td>${visitor.page}</td>
+                    <td>
+                        <button class="action-btn" onclick="deleteVisitor('${visitor.username}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('totalUniqueUsers').textContent = visitors.length;
+        }
+
+        function deleteVisitor(username) {
+            if (confirm(`Delete all records for ${username}?`)) {
+                localStorage.removeItem(`visitor_${username}`);
+                loadVisitors();
+            }
+        }
+
+        // ★★★ MAIN DATA LOADER ★★★
+        function loadAdminData() {
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+            document.getElementById('totalBooks').textContent = books.length;
+
+            let totalChapters = 0;
+            let totalViews = 0;
+            let totalComments = 0;
+            let totalLikes = 0;
+            const popularBooks = [];
+            const allComments = [];
+            const likedContent = [];
+
+            // Process books
+            books.forEach(book => {
+                // Book views
+                const viewsKey = `book_${book.id}_views`;
+                const viewsData = JSON.parse(localStorage.getItem(viewsKey)) || { count: 0 };
+                totalViews += viewsData.count;
+
+                // Book likes
+                const likesKey = `book_${book.id}_likes`;
+                const likesData = JSON.parse(localStorage.getItem(likesKey)) || { count: 0 };
+                totalLikes += likesData.count;
+
+                // Chapters
+                const chapters = JSON.parse(localStorage.getItem(`book_${book.id}_chapters`)) || [];
+                totalChapters += chapters.length;
+
+                // Process chapters
+                chapters.forEach((chapter, index) => {
+                    // Chapter views
+                    const chapterViewsKey = `book_${book.id}_chapter_${index}_views`;
+                    const chapterViews = JSON.parse(localStorage.getItem(chapterViewsKey)) || { count: 0 };
+                    totalViews += chapterViews.count;
+
+                    // Chapter comments
+                    const commentsKey = `book_${book.id}_chapter_${index}_comments`;
+                    const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+                    totalComments += comments.length;
+                    comments.forEach(comment => {
+                        allComments.push({
+                            book: book.title,
+                            chapter: `Ch.${index + 1}: ${chapter.title}`,
+                            ...comment
+                        });
+                    });
+
+                    // Chapter likes
+                    const chapterLikesKey = `book_${book.id}_chapter_${index}_likes`;
+                    const chapterLikes = JSON.parse(localStorage.getItem(chapterLikesKey)) || { count: 0 };
+                    totalLikes += chapterLikes.count;
+                    if (chapterLikes.count > 0) {
+                        likedContent.push({
+                            title: `${book.title} - Ch.${index + 1}`,
+                            type: 'Chapter',
+                            likes: chapterLikes.count,
+                            id: book.id
+                        });
+                    }
+                });
+
+                // Book comments
+                const bookComments = JSON.parse(localStorage.getItem(`book_${book.id}_comments`)) || [];
+                totalComments += bookComments.length;
+                bookComments.forEach(comment => {
+                    allComments.push({
+                        book: book.title,
+                        chapter: 'Book Page',
+                        ...comment
+                    });
+                });
+
+                // Popular books
+                if (viewsData.count > 0 || likesData.count > 0) {
+                    popularBooks.push({
+                        ...book,
+                        views: viewsData.count,
+                        likes: likesData.count
+                    });
+                }
+
+                // Liked books
+                if (likesData.count > 0) {
+                    likedContent.push({
+                        title: book.title,
+                        type: 'Book',
+                        likes: likesData.count,
+                        id: book.id
+                    });
+                }
+            });
+
+            // Update stats
+            document.getElementById('totalChapters').textContent = totalChapters;
+            document.getElementById('totalUniqueViews').textContent = totalViews;
+            document.getElementById('totalComments').textContent = totalComments;
+            document.getElementById('totalLikes').textContent = totalLikes;
+
+            // Populate tables
+            populatePopularBooks(popularBooks);
+            populateComments(allComments);
+            populateLikedContent(likedContent);
+            populateAllBooks(books);
+            loadVisitors();
+        }
+
+        // ★★★ TABLE POPULATORS ★★★
+        function populatePopularBooks(books) {
+            const tbody = document.querySelector('#popularBooksTable tbody');
+            books.sort((a, b) => (b.views + b.likes) - (a.views + a.likes));
+            tbody.innerHTML = books.slice(0, 5).map(book => `
+                <tr>
+                    <td>${book.title}</td>
+                    <td>${book.author || 'Unknown'}</td>
+                    <td>${book.views}</td>
+                    <td>${book.likes}</td>
+                    <td>
+                        <button class="action-btn" onclick="location.href='book.html?id=${book.id}'">👁️</button>
+                        <button class="action-btn" onclick="location.href='write.html?bookId=${book.id}'">✏️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateComments(comments) {
+            const tbody = document.querySelector('#commentsTable tbody');
+            comments.sort((a, b) => new Date(b.date) - new Date(a.date));
+            tbody.innerHTML = comments.slice(0, 10).map(comment => `
+                <tr>
+                    <td>
+                        <strong>${comment.book}</strong><br>
+                        <small>${comment.chapter}</small>
+                    </td>
+                    <td>${comment.author}</td>
+                    <td>${comment.text.length > 50 ? comment.text.substring(0, 50) + '...' : comment.text}</td>
+                    <td>${comment.date}</td>
+                    <td>
+                        <button class="action-btn" onclick="deleteComment('${comment.book}', '${comment.date}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateLikedContent(content) {
+            const tbody = document.querySelector('#likesTable tbody');
+            content.sort((a, b) => b.likes - a.likes);
+            tbody.innerHTML = content.slice(0, 5).map(item => `
+                <tr>
+                    <td>${item.title}</td>
+                    <td>${item.type}</td>
+                    <td>${item.likes}</td>
+                    <td>
+                        <button class="action-btn" onclick="location.href='${item.type === 'Book' ? 'book' : 'livre'}.html?id=${item.id}'">👁️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateAllBooks(books) {
+            const tbody = document.querySelector('#booksTable tbody');
+            tbody.innerHTML = books.map(book => {
+                const views = JSON.parse(localStorage.getItem(`book_${book.id}_views`)) || { count: 0 };
+                const likes = JSON.parse(localStorage.getItem(`book_${book.id}_likes`)) || { count: 0 };
+                return `
+                    <tr>
+                        <td>${book.title}</td>
+                        <td>${book.author || 'Unknown'}</td>
+                        <td>${new Date(parseInt(book.id)).toLocaleDateString()}</td>
+                        <td>${views.count}</td>
+                        <td>${likes.count}</td>
+                        <td>
+                            <button class="action-btn" onclick="location.href='book.html?id=${book.id}'">👁️</button>
+                            <button class="action-btn" onclick="location.href='write.html?bookId=${book.id}'">✏️</button>
+                            <button class="action-btn" onclick="deleteBook('${book.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ★★★ DELETE FUNCTIONS ★★★
+        function deleteBook(bookId) {
+            if (confirm("Delete this book and all associated data?")) {
+                let books = JSON.parse(localStorage.getItem('books')) || [];
+                books = books.filter(b => b.id !== bookId);
+                localStorage.setItem('books', JSON.stringify(books));
+
+                // Cleanup related data
+                ['views', 'likes', 'comments', 'chapters'].forEach(type => {
+                    localStorage.removeItem(`book_${bookId}_${type}`);
+                });
+                loadAdminData();
+            }
+        }
+
+        function deleteComment(bookTitle, commentDate) {
+            if (confirm("Delete this comment?")) {
+                // Implementation depends on your storage structure
+                alert("Comment deletion would be implemented here");
+                loadAdminData();
+            }
+        }
+
+        // ★★★ INITIALIZATION ★★★
+        document.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) trackVisit(currentUser);
+            loadAdminData();
+        });
+    </script>
+</body>
+</html>

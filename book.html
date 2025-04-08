@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Title - GreenLeaf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-green: #2a5c3d;
+            --light-green: #e8f5e9;
+            --gold: #d4af37;
+            --cream: #fffef6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--cream);
+            min-height: 100vh;
+            position: relative;
+            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+
+        .book-cover-container {
+            width: 100%;
+            height: 50vh;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .cover-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .cover-btn {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .cover-btn:hover {
+            background: var(--main-green);
+            transform: scale(1.1);
+        }
+
+        .book-header {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 30px 40px;
+            color: white;
+        }
+
+        .book-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3rem;
+            margin: 0;
+        }
+
+        .book-author {
+            font-size: 1.5rem;
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+
+        .book-content {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .book-description {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .action-btn {
+            background: var(--main-green);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .social-interaction {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .social-btn {
+            background: transparent;
+            border: 1px solid var(--main-green);
+            color: var(--main-green);
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .social-btn:hover {
+            background: var(--light-green);
+        }
+
+        .comments-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--main-green);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .comment-submit {
+            background: var(--main-green);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .comment-submit:hover {
+            background: #1e4a30;
+        }
+
+        .comment {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: var(--main-green);
+        }
+
+        .comment-date {
+            color: #999;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .comment-text {
+            margin-top: 10px;
+        }
+
+        .comment-menu {
+            position: absolute;
+            top: 15px;
+            right: 0;
+        }
+
+        .comment-menu-btn {
+            background: none;
+            border: none;
+            color: var(--main-green);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .comment-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 100px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        .comment-dropdown a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--main-green);
+            text-decoration: none;
+        }
+
+        .comment-dropdown a:hover {
+            background-color: var(--light-green);
+        }
+
+        .comment-menu:hover .comment-dropdown {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .book-cover-container {
+                height: 40vh;
+                min-height: 300px;
+            }
+            
+            .book-title {
+                font-size: 2rem;
+            }
+            
+            .book-author {
+                font-size: 1.2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .social-interaction {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book-cover-container">
+        <div class="book-cover" id="bookCover" style="background-image: url('https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000')"></div>
+        
+        <div class="cover-controls">
+            <button class="cover-btn" title="Change Cover" onclick="changeCover()">🖼️</button>
+            <button class="cover-btn" title="Edit Description" onclick="editDescription()">✏️</button>
+        </div>
+        
+        <div class="book-header">
+            <h1 class="book-title" id="bookTitle">Book Title</h1>
+            <p class="book-author" id="bookAuthor">By Author Name</p>
+        </div>
+    </div>
+
+    <div class="book-content">
+        <div class="book-description">
+            <p id="bookDescription">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl. Nullam auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget ultricies nisl nisl eget nisl.</p>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn" onclick="location.href='chapitre.html?bookId=' + getBookId()">See Chapters</button>
+        </div>
+
+        <div class="social-interaction">
+            <button class="social-btn" id="likeBtn">👍 Like (<span id="likeCount">0</span>)</button>
+            <button class="social-btn" id="shareBtn">🔗 Share</button>
+        </div>
+
+        <div class="comments-section">
+            <h3 class="section-title">COMMENTS</h3>
+            <form class="comment-form" id="commentForm">
+                <textarea id="commentText" placeholder="Write your comment here..." required></textarea>
+                <button type="submit" class="comment-submit">Post Comment</button>
+            </form>
+            
+            <div id="commentsContainer">
+                <!-- Comments will be loaded here -->
+            </div>
+        </div>
+
+        <footer>
+            GreenLeaf Library © 2023
+        </footer>
+    </div>
+
+    <script>
+        // ★★★ PROTECTION ADMIN ★★★
+        const currentUser = localStorage.getItem('currentUser');
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+        if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
+            document.querySelector('.cover-controls').style.display = 'none';
+        }
+
+        // Load book data
+        function loadBookData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookId = urlParams.get('id');
+            
+            if (bookId) {
+                const books = JSON.parse(localStorage.getItem('books')) || [];
+                const book = books.find(b => b.id == bookId);
+                
+                if (book) {
+                    document.getElementById('bookTitle').textContent = book.title;
+                    document.getElementById('bookAuthor').textContent = `By ${book.author || 'Unknown Author'}`;
+                    document.getElementById('bookDescription').textContent = book.description || 'No description available';
+                    
+                    // Check if there's a modified cover for this book
+                    const modifiedCoverKey = `book_${bookId}_modified_cover`;
+                    const modifiedCover = localStorage.getItem(modifiedCoverKey);
+                    
+                    // Use modified cover if it exists, otherwise original cover
+                    document.getElementById('bookCover').style.backgroundImage = `url('${modifiedCover || book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')`;
+                    
+                    // Load likes
+                    updateLikeCount(bookId);
+                    
+                    // Load comments
+                    loadComments(bookId);
+                    
+                    // Track view
+                    trackView(bookId);
+                }
+            }
+        }
+        
+        function getBookId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+        
+        function trackView(bookId) {
+            const viewsKey = `book_${bookId}_views`;
+            let views = parseInt(localStorage.getItem(viewsKey)) || 0;
+            views++;
+            localStorage.setItem(viewsKey, views);
+        }
+        
+        // Like/Unlike functionality
+        function updateLikeCount(bookId) {
+            const likesKey = `book_${bookId}_likes`;
+            const userLikesKey = `user_${localStorage.getItem('username') || 'anonymous'}_likes_${bookId}`;
+            const likes = JSON.parse(localStorage.getItem(likesKey)) || {count: 0, users: {}};
+            
+            document.getElementById('likeCount').textContent = likes.count;
+            
+            // Update button appearance
+            const likeBtn = document.getElementById('likeBtn');
+            if (likes.users[userLikesKey]) {
+                likeBtn.style.backgroundColor = '#e8f5e9';
+                likeBtn.style.color = '#2a5c3d';
+            } else {
+                likeBtn.style.backgroundColor = '';
+                likeBtn.style.color = '';
+            }
+        }
+        
+        document.getElementById('likeBtn').addEventListener('click', function() {
+            const bookId = getBookId();
+            const username = localStorage.getItem('username') || 'anonymous';
+            const userLikesKey = `user_${username}_likes_${bookId}`;
+            
+            if (bookId) {
+                const likesKey = `book_${bookId}_likes`;
+                let likes = JSON.parse(localStorage.getItem(likesKey)) || {count: 0, users: {}};
+                const hasLiked = likes.users[userLikesKey];
+                
+                if (hasLiked) {
+                    // Unlike
+                    likes.count--;
+                    delete likes.users[userLikesKey];
+                    this.style.backgroundColor = '';
+                    this.style.color = '';
+                } else {
+                    // Like
+                    likes.count++;
+                    likes.users[userLikesKey] = true;
+                    this.style.backgroundColor = '#e8f5e9';
+                    this.style.color = '#2a5c3d';
+                }
+                
+                localStorage.setItem(likesKey, JSON.stringify(likes));
+                document.getElementById('likeCount').textContent = likes.count;
+            }
+        });
+        
+        // Load comments with delete options
+        function loadComments(bookId) {
+            const commentsContainer = document.getElementById('commentsContainer');
+            const comments = JSON.parse(localStorage.getItem(`book_${bookId}_comments`)) || [];
+            const currentUser = localStorage.getItem('username') || 'Anonymous';
+            
+            commentsContainer.innerHTML = comments.map((comment, index) => {
+                const canDelete = comment.author === currentUser;
+                return `
+                    <div class="comment">
+                        <div>
+                            <span class="comment-author">${comment.author}</span>
+                            <span class="comment-date">${comment.date}</span>
+                            ${canDelete ? `
+                            <span class="comment-menu">
+                                <button class="comment-menu-btn" onclick="event.stopPropagation()">⋯</button>
+                                <div class="comment-dropdown">
+                                    <a href="#" onclick="event.preventDefault(); deleteComment('${bookId}', ${index})">Delete</a>
+                                </div>
+                            </span>
+                            ` : ''}
+                        </div>
+                        <p class="comment-text">${comment.text}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Delete comment
+        function deleteComment(bookId, commentIndex) {
+            if (confirm("Delete this comment?")) {
+                const commentsKey = `book_${bookId}_comments`;
+                let comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+                comments.splice(commentIndex, 1);
+                localStorage.setItem(commentsKey, JSON.stringify(comments));
+                loadComments(bookId);
+            }
+            return false;
+        }
+        
+        // Change cover from local file
+        function changeCover() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = event => {
+                    const newCoverUrl = event.target.result;
+                    document.getElementById('bookCover').style.backgroundImage = `url('${newCoverUrl}')`;
+                    
+                    // Save to localStorage without modifying the original book object
+                    const bookId = getBookId();
+                    
+                    if (bookId) {
+                        const modifiedCoverKey = `book_${bookId}_modified_cover`;
+                        localStorage.setItem(modifiedCoverKey, newCoverUrl);
+                    }
+                };
+                reader.readAsDataURL(file);
+            };
+            
+            input.click();
+        }
+        
+        // Edit description
+        function editDescription() {
+            const currentDesc = document.getElementById('bookDescription').textContent;
+            const newDesc = prompt("Edit book description:", currentDesc);
+            
+            if (newDesc !== null) {
+                document.getElementById('bookDescription').textContent = newDesc;
+                
+                const bookId = getBookId();
+                
+                if (bookId) {
+                    const books = JSON.parse(localStorage.getItem('books')) || [];
+                    const bookIndex = books.findIndex(b => b.id == bookId);
+                    
+                    if (bookIndex !== -1) {
+                        books[bookIndex].description = newDesc;
+                        localStorage.setItem('books', JSON.stringify(books));
+                    }
+                }
+            }
+        }
+        
+        // Share functionality
+        document.getElementById('shareBtn').addEventListener('click', function() {
+            const bookTitle = document.getElementById('bookTitle').textContent;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: bookTitle,
+                    text: `Check out "${bookTitle}" on GreenLeaf Library`,
+                    url: window.location.href
+                });
+            } else {
+                alert(`Share this book: ${bookTitle}\nURL: ${window.location.href}`);
+            }
+        });
+        
+        // Comment functionality
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) return;
+            
+            const bookId = getBookId();
+            
+            if (bookId) {
+                const commentsKey = `book_${bookId}_comments`;
+                const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+                
+                const username = localStorage.getItem('username') || 'Anonymous';
+                const currentDate = new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                comments.unshift({
+                    author: username,
+                    date: currentDate,
+                    text: commentText
+                });
+                
+                localStorage.setItem(commentsKey, JSON.stringify(comments));
+                document.getElementById('commentText').value = '';
+                loadComments(bookId);
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadBookData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading - GreenLeaf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-green: #2a5c3d;
+            --light-green: #e8f5e9;
+            --gold: #d4af37;
+            --cream: #fffef6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--cream);
+            min-height: 100vh;
+            position: relative;
+            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+
+        .header {
+            padding: 20px 40px;
+            background-color: rgba(255, 254, 246, 0.9);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .book-title {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--main-green);
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .chapter-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: var(--main-green);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .reading-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .chapter-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2.2rem;
+            color: var(--main-green);
+            margin-bottom: 10px;
+        }
+
+        .chapter-content {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .chapter-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .action-btn {
+            background: var(--main-green);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #1e4a30;
+        }
+
+        .like-btn {
+            background: transparent;
+            border: 1px solid var(--main-green);
+            color: var(--main-green);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .like-btn.liked {
+            background: var(--light-green);
+        }
+
+        .comments-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--main-green);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .comment-submit {
+            background: var(--main-green);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .comment-submit:hover {
+            background: #1e4a30;
+        }
+
+        .comment {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: var(--main-green);
+        }
+
+        .comment-date {
+            color: #999;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .comment-text {
+            margin-top: 10px;
+        }
+
+        .comment-menu {
+            position: absolute;
+            top: 15px;
+            right: 0;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--main-green);
+            font-size: 1.2rem;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 120px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 10;
+            border: 1px solid var(--light-green);
+        }
+
+        .menu-dropdown a {
+            display: block;
+            padding: 8px 12px;
+            color: var(--main-green);
+            text-decoration: none;
+        }
+
+        .menu-dropdown a:hover {
+            background-color: var(--light-green);
+        }
+
+        .comment-menu:hover .menu-dropdown {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .reading-container {
+                margin: 20px auto;
+            }
+            
+            .chapter-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="book-title" id="bookTitleDisplay">Book Title</h1>
+        <div class="chapter-nav">
+            <button class="nav-btn" onclick="location.href='chapitre.html?bookId=' + getBookId()">Chapters</button>
+            <button class="nav-btn" id="nextChapterBtn">Next</button>
+        </div>
+    </div>
+
+    <div class="reading-container">
+        <div class="chapter-header">
+            <h2 class="chapter-title" id="chapterTitleDisplay">Chapter 1</h2>
+        </div>
+        
+        <div class="chapter-content" id="chapterContent">
+            <p>Loading content...</p>
+        </div>
+
+        <div class="chapter-actions">
+            <button class="action-btn like-btn" id="likeBtn">
+                <span id="likeIcon">👍</span>
+                <span id="likeCount">0</span>
+            </button>
+        </div>
+
+        <div class="comments-section">
+            <h3 class="section-title">Comments</h3>
+            
+            <form class="comment-form" id="commentForm">
+                <textarea id="commentText" placeholder="Share your thoughts about this chapter..." required></textarea>
+                <button type="submit" class="comment-submit">Post Comment</button>
+            </form>
+            
+            <div id="commentsContainer">
+                <!-- Comments will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentChapter = 1;
+        let bookId = null;
+        let chapters = [];
+        const currentUser = localStorage.getItem('username') || 'anonymous';
+
+        function getBookId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('bookId');
+        }
+
+        // Load chapter data
+        function loadChapterData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            bookId = getBookId();
+            const chapterParam = urlParams.get('chapter');
+            
+            if (chapterParam) {
+                currentChapter = parseInt(chapterParam);
+            }
+
+            if (!bookId) {
+                alert("No book selected");
+                window.location.href = 'mylibrary.html';
+                return;
+            }
+
+            // Load book
+            const books = JSON.parse(localStorage.getItem('books')) || [];
+            const book = books.find(b => b.id == bookId);
+            
+            if (book) {
+                document.getElementById('bookTitleDisplay').textContent = book.title;
+            }
+
+            // Load chapters
+            const chaptersKey = `book_${bookId}_chapters`;
+            chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
+            
+            if (chapters.length === 0) {
+                document.getElementById('chapterContent').innerHTML = '<p>This book has no chapters yet</p>';
+                return;
+            }
+
+            // Show current chapter
+            showChapter(currentChapter);
+        }
+
+        function showChapter(chapterNum) {
+            if (chapterNum < 1 || chapterNum > chapters.length) {
+                alert("Chapter not available");
+                return;
+            }
+
+            const chapter = chapters[chapterNum - 1];
+            document.getElementById('chapterTitleDisplay').textContent = `Chapter ${chapterNum}: ${chapter.title}`;
+            document.getElementById('chapterContent').innerHTML = chapter.content;
+            
+            // Update Next button
+            const nextBtn = document.getElementById('nextChapterBtn');
+            if (chapterNum >= chapters.length) {
+                nextBtn.textContent = "Next";
+            } else {
+                nextBtn.textContent = "Next";
+            }
+            
+            // Load likes
+            updateLikeCount();
+            
+            // Load comments
+            loadComments();
+        }
+
+        // Like functionality
+        function updateLikeCount() {
+            const likesKey = `book_${bookId}_chapter_${currentChapter}_likes`;
+            const likes = JSON.parse(localStorage.getItem(likesKey)) || { count: 0, users: {} };
+            
+            document.getElementById('likeCount').textContent = likes.count;
+            
+            const likeBtn = document.getElementById('likeBtn');
+            if (likes.users[currentUser]) {
+                likeBtn.classList.add('liked');
+                document.getElementById('likeIcon').textContent = '👍';
+            } else {
+                likeBtn.classList.remove('liked');
+                document.getElementById('likeIcon').textContent = '👍';
+            }
+        }
+
+        document.getElementById('likeBtn').addEventListener('click', function() {
+            const likesKey = `book_${bookId}_chapter_${currentChapter}_likes`;
+            let likes = JSON.parse(localStorage.getItem(likesKey)) || { count: 0, users: {} };
+            
+            if (likes.users[currentUser]) {
+                // Unlike
+                likes.count--;
+                delete likes.users[currentUser];
+                this.classList.remove('liked');
+            } else {
+                // Like
+                likes.count++;
+                likes.users[currentUser] = true;
+                this.classList.add('liked');
+            }
+            
+            localStorage.setItem(likesKey, JSON.stringify(likes));
+            updateLikeCount();
+        });
+
+        // Comments functionality
+        function loadComments() {
+            const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
+            const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+            const commentsContainer = document.getElementById('commentsContainer');
+            
+            if (comments.length === 0) {
+                commentsContainer.innerHTML = '<p>No comments yet</p>';
+            } else {
+                commentsContainer.innerHTML = comments.map((comment, index) => {
+                    const canDelete = comment.author === currentUser;
+                    return `
+                        <div class="comment">
+                            <div>
+                                <span class="comment-author">${comment.author}</span>
+                                <span class="comment-date">${comment.date}</span>
+                                ${canDelete ? `
+                                <span class="comment-menu">
+                                    <button class="menu-btn">⋯</button>
+                                    <div class="menu-dropdown">
+                                        <a href="#" onclick="event.preventDefault(); deleteComment(${index})">Delete</a>
+                                    </div>
+                                </span>
+                                ` : ''}
+                            </div>
+                            <p class="comment-text">${comment.text}</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function deleteComment(commentIndex) {
+            if (confirm("Delete this comment?")) {
+                const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
+                const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+                comments.splice(commentIndex, 1);
+                
+                localStorage.setItem(commentsKey, JSON.stringify(comments));
+                loadComments();
+            }
+        }
+
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) return;
+            
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const newComment = {
+                author: currentUser,
+                date: currentDate,
+                text: commentText
+            };
+            
+            const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
+            const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+            comments.push(newComment);
+            
+            localStorage.setItem(commentsKey, JSON.stringify(newComment));
+            document.getElementById('commentText').value = '';
+            loadComments();
+        });
+
+        // Next chapter button
+        document.getElementById('nextChapterBtn').addEventListener('click', function() {
+            if (currentChapter < chapters.length) {
+                currentChapter++;
+                showChapter(currentChapter);
+                window.history.pushState({}, '', `?bookId=${bookId}&chapter=${currentChapter}`);
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadChapterData);
+    </script>
+</body>
+</html>
