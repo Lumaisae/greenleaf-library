@@ -326,6 +326,60 @@
 
         // Load books from localStorage
         function loadBooks() {
+function loadBooks() {
+    // AJOUT SPÉCIFIQUE
+    const defaultBook = {
+        id: 9999999999999,
+        title: "Who is the next prey?🐱‍👤",
+        author: "Lumaissae", // Nom d'auteur
+        description: "Have you ever thought that maybe you were born in a laboratory? That you’re just an experiment to someone… but somehow you still love being their object. Their experiment. Their creation💔",
+        cover: "https://img.freepik.com/photos-premium/femme-silhouette-mysterieuse-ai-generative_391229-10825.jpg" // NOUVELLE IMAGE VALIDÉE
+    };
+
+    let books = JSON.parse(localStorage.getItem('books')) || [];
+    
+    if (!books.some(b => b.id === defaultBook.id)) {
+        books.push(defaultBook);
+        localStorage.setItem('books', JSON.stringify(books));
+        
+        const chapter = {
+            id: Date.now(),
+            title: "CHAPTER1: the beginning",
+            content: "WILL BE AVAILABLE SOON😊😊",
+            date: new Date().toLocaleDateString('fr-FR')
+        };
+        localStorage.setItem(`book_${defaultBook.id}_chapters`, JSON.stringify([chapter]));
+    }
+
+    // RESTE DU CODE ORIGINAL
+    const booksGrid = document.getElementById('booksGrid');
+    booksGrid.innerHTML = books.map(book => `
+        <div class="book-card">
+            <div class="book-cover" onclick="window.location.href='book.html?id=${book.id}'" 
+                 style="background-image: url('${book.cover}')">
+                ${isAdmin() ? `
+                <div class="book-menu">
+                    <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
+                    <div class="menu-dropdown">
+                        <a href="book.html?id=${book.id}">View</a>
+                        <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
+                        <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            <div class="book-info" onclick="window.location.href='book.html?id=${book.id}'">
+                <div class="book-title">${book.title}</div>
+                <div class="book-author">By ${book.author}</div>
+                ${isAdmin() ? `
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')">
+                    Delete Book
+                </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
             const books = JSON.parse(localStorage.getItem('books')) || [];
             const booksGrid = document.getElementById('booksGrid');
             
