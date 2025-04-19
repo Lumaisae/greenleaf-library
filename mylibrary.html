@@ -470,9 +470,11 @@ function loadBooks() {
 
         function saveBook(book) {
             if (!isAdmin()) return;
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            books.push(book);
-            localStorage.setItem('books', JSON.stringify(books));
+            
+            // const books = JSON.parse(localStorage.getItem('books')) || [];
+            // books.push(book);
+            // localStorage.setItem('books', JSON.stringify(books));
+            const books = 
             
             modal.style.display = 'none';
             addBookForm.reset();
