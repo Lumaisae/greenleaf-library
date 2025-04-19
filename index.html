@@ -1,261 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GreenLeaf Library</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    <script src="js/firebase.js"></script>
     <style>
-        :root {
-            --main-green: #2a5c3d;
-            --light-green: #e8f5e9;
-            --gold: #d4af37;
-            --cream: #fffef6;
-        }
+      :root {
+        --main-green: #2a5c3d;
+        --light-green: #e8f5e9;
+        --gold: #d4af37;
+        --cream: #fffef6;
+      }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--cream);
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Roboto", sans-serif;
+        background-color: var(--cream);
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+      }
 
-        .book-background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0.15;
-            z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(80%) sepia(30%);
-        }
+      .book-background {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0.15;
+        z-index: -1;
+        background-image: url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000");
+        background-size: cover;
+        background-position: center;
+        filter: grayscale(80%) sepia(30%);
+      }
 
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-            padding: 0 20px;
-        }
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+        padding: 0 20px;
+      }
 
+      .main-title {
+        font-family: "Cinzel Decorative", cursive;
+        font-size: 6rem;
+        color: var(--main-green);
+        margin: 0;
+        text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+        letter-spacing: 2px;
+        position: relative;
+        animation: fadeInDown 1.5s ease;
+      }
+
+      .main-title::after {
+        content: "";
+        display: block;
+        width: 150px;
+        height: 4px;
+        background: var(--gold);
+        margin: 20px auto;
+      }
+
+      .subtitle {
+        font-size: 1.5rem;
+        color: #555;
+        max-width: 700px;
+        margin: 20px 0 40px;
+        animation: fadeIn 2s ease;
+      }
+
+      .enter-button {
+        background: var(--main-green);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        animation: pulse 2s infinite;
+      }
+
+      .enter-button:hover {
+        background: #1e4a30;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .floating-books {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .floating-book {
+        position: absolute;
+        opacity: 0.2;
+        animation: float 15s infinite linear;
+      }
+
+      /* Style pour le champ code admin (caché par défaut) */
+      .admin-code-field {
+        display: none;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        width: 250px;
+        max-width: 80%;
+        margin-bottom: 10px;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-20px) rotate(5deg);
+        }
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+      }
+
+      @media (max-width: 768px) {
         .main-title {
-            font-family: 'Cinzel Decorative', cursive;
-            font-size: 6rem;
-            color: var(--main-green);
-            margin: 0;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.1);
-            letter-spacing: 2px;
-            position: relative;
-            animation: fadeInDown 1.5s ease;
+          font-size: 4rem;
         }
-
-        .main-title::after {
-            content: "";
-            display: block;
-            width: 150px;
-            height: 4px;
-            background: var(--gold);
-            margin: 20px auto;
-        }
-
         .subtitle {
-            font-size: 1.5rem;
-            color: #555;
-            max-width: 700px;
-            margin: 20px 0 40px;
-            animation: fadeIn 2s ease;
+          font-size: 1.2rem;
         }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="book-background"></div>
 
-        .enter-button {
-            background: var(--main-green);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            animation: pulse 2s infinite;
-        }
+    <div class="floating-books">
+      <div class="floating-book" style="top: 20%; left: 10%">📘</div>
+      <div class="floating-book" style="top: 70%; left: 80%">📗</div>
+      <div class="floating-book" style="top: 40%; left: 85%">📕</div>
+      <div class="floating-book" style="top: 80%; left: 15%">📙</div>
+    </div>
 
-        .enter-button:hover {
-            background: #1e4a30;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
+    <div class="main-content">
+      <h1 class="main-title">GreenLeaf Library</h1>
+      <p class="subtitle">Step into a world of endless stories...</p>
 
-        .floating-books {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .floating-book {
-            position: absolute;
-            opacity: 0.2;
-            animation: float 15s infinite linear;
-        }
-
-        /* Style pour le champ code admin (caché par défaut) */
-        .admin-code-field {
-            display: none;
+      <div class="username-form" style="margin-bottom: 20px">
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter your name"
+          style="
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
             width: 250px;
             max-width: 80%;
-            margin-bottom: 10px;
-        }
+          "
+        />
+        <input
+          type="password"
+          class="admin-code-field"
+          id="adminCode"
+          placeholder="Enter admin code (123niha456ROMA)"
+        />
+      </div>
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-20px) rotate(5deg);
-            }
-            100% {
-                transform: translateY(0) rotate(0deg);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-title {
-                font-size: 4rem;
-            }
-            .subtitle {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="book-background"></div>
-    
-    <div class="floating-books">
-        <div class="floating-book" style="top: 20%; left: 10%;">
-            📘
-        </div>
-        <div class="floating-book" style="top: 70%; left: 80%;">
-            📗
-        </div>
-        <div class="floating-book" style="top: 40%; left: 85%;">
-            📕
-        </div>
-        <div class="floating-book" style="top: 80%; left: 15%;">
-            📙
-        </div>
-    </div>
-
-    <div class="main-content">
-        <h1 class="main-title">GreenLeaf Library</h1>
-        <p class="subtitle">Step into a world of endless stories...</p>
-        
-        <div class="username-form" style="margin-bottom: 20px;">
-            <input type="text" id="username" placeholder="Enter your name" 
-                   style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; width: 250px; max-width: 80%;">
-            <input type="password" class="admin-code-field" id="adminCode" placeholder="Enter admin code (123niha456ROMA)">
-        </div>
-        
-        <button class="enter-button" id="enterBtn">Enter the Library</button>
+      <button class="enter-button" id="enterBtn">Enter the Library</button>
     </div>
 
     <script>
-        // Afficher le champ code admin seulement quand on tape "monadmin"
-        document.getElementById('username').addEventListener('input', function() {
-            const username = this.value.trim().toLowerCase();
-            const adminCodeField = document.getElementById('adminCode');
-            
-            if (username === 'monadmin') {
-                adminCodeField.style.display = 'block';
+      // Afficher le champ code admin seulement quand on tape "monadmin"
+      document
+        .getElementById("username")
+        .addEventListener("input", function () {
+          const username = this.value.trim().toLowerCase();
+          const adminCodeField = document.getElementById("adminCode");
+
+          if (username === "monadmin") {
+            adminCodeField.style.display = "block";
+          } else {
+            adminCodeField.style.display = "none";
+          }
+        });
+
+      // Validation de la connexion
+      document
+        .getElementById("enterBtn")
+        .addEventListener("click", function () {
+          const username = document.getElementById("username").value.trim();
+          const adminCode = document.getElementById("adminCode").value;
+
+          if (!username) {
+            alert("Please enter your name to continue");
+            return;
+          }
+
+          // Vérification si c'est l'admin
+          if (username.toLowerCase() === "monadmin") {
+            if (adminCode === "123niha456ROMA") {
+              localStorage.setItem("username", username);
+              localStorage.setItem("isAdmin", "true");
+              alert("Welcome Admin!");
+              window.location.href = "mylibrary.html";
             } else {
-                adminCodeField.style.display = 'none';
+              alert("Incorrect admin code");
+              return;
             }
+          } else {
+            localStorage.setItem("username", username);
+            localStorage.setItem("isAdmin", "false");
+            window.location.href = "mylibrary.html";
+          }
         });
 
-        // Validation de la connexion
-        document.getElementById('enterBtn').addEventListener('click', function() {
-            const username = document.getElementById('username').value.trim();
-            const adminCode = document.getElementById('adminCode').value;
-            
-            if(!username) {
-                alert('Please enter your name to continue');
-                return;
-            }
-            
-            // Vérification si c'est l'admin
-            if (username.toLowerCase() === 'monadmin') {
-                if (adminCode === '123niha456ROMA') {
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('isAdmin', 'true');
-                    alert('Welcome Admin!');
-                    window.location.href = 'mylibrary.html';
-                } else {
-                    alert('Incorrect admin code');
-                    return;
-                }
-            } else {
-                localStorage.setItem('username', username);
-                localStorage.setItem('isAdmin', 'false');
-                window.location.href = 'mylibrary.html';
-            }
+      // Permettre d'utiliser la touche Entrée pour valider
+      document
+        .getElementById("adminCode")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            document.getElementById("enterBtn").click();
+          }
         });
 
-        // Permettre d'utiliser la touche Entrée pour valider
-        document.getElementById('adminCode').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('enterBtn').click();
-            }
-        });
+      // Créer des livres flottants supplémentaires
+      document.addEventListener("DOMContentLoaded", function () {
+        const floatingBooks = document.querySelector(".floating-books");
+        const bookEmojis = ["📘", "📗", "📕", "📙", "📓", "📔", "📒"];
 
-        // Créer des livres flottants supplémentaires
-        document.addEventListener('DOMContentLoaded', function() {
-            const floatingBooks = document.querySelector('.floating-books');
-            const bookEmojis = ['📘', '📗', '📕', '📙', '📓', '📔', '📒'];
-            
-            for (let i = 0; i < 10; i++) {
-                const book = document.createElement('div');
-                book.className = 'floating-book';
-                book.textContent = bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
-                book.style.left = `${Math.random() * 100}%`;
-                book.style.top = `${Math.random() * 100}%`;
-                book.style.fontSize = `${Math.random() * 20 + 20}px`;
-                book.style.animationDuration = `${Math.random() * 10 + 10}s`;
-                book.style.animationDelay = `${Math.random() * 5}s`;
-                floatingBooks.appendChild(book);
-            }
-        });
+        for (let i = 0; i < 10; i++) {
+          const book = document.createElement("div");
+          book.className = "floating-book";
+          book.textContent =
+            bookEmojis[Math.floor(Math.random() * bookEmojis.length)];
+          book.style.left = `${Math.random() * 100}%`;
+          book.style.top = `${Math.random() * 100}%`;
+          book.style.fontSize = `${Math.random() * 20 + 20}px`;
+          book.style.animationDuration = `${Math.random() * 10 + 10}s`;
+          book.style.animationDelay = `${Math.random() * 5}s`;
+          floatingBooks.appendChild(book);
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

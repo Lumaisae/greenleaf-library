@@ -1,583 +1,550 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Book - GreenLeaf Library</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    <script src="js/firebase.js"></script>
+
     <style>
-        :root {
-            --main-green: #2a5c3d;
-            --light-green: #e8f5e9;
-            --gold: #d4af37;
-            --cream: #fffef6;
-        }
+      :root {
+        --main-green: #2a5c3d;
+        --light-green: #e8f5e9;
+        --gold: #d4af37;
+        --cream: #fffef6;
+      }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--cream);
-            min-height: 100vh;
-            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
-            background-size: cover;
-            background-position: center;
-            background-blend-mode: overlay;
-        }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Roboto", sans-serif;
+        background-color: var(--cream);
+        min-height: 100vh;
+        background-image: url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000");
+        background-size: cover;
+        background-position: center;
+        background-blend-mode: overlay;
+      }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            background-color: rgba(255, 254, 246, 0.9);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        background-color: rgba(255, 254, 246, 0.9);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
 
-        .library-title {
-            font-family: 'Cinzel Decorative', cursive;
-            font-size: 2.5rem;
-            color: var(--main-green);
-            margin: 0;
-        }
+      .library-title {
+        font-family: "Cinzel Decorative", cursive;
+        font-size: 2.5rem;
+        color: var(--main-green);
+        margin: 0;
+      }
 
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-        }
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+      }
 
-        .action-btn {
-            background: var(--main-green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
+      .action-btn {
+        background: var(--main-green);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+      }
 
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
+      .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
 
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 30px;
-            padding: 40px;
-        }
+      .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+        padding: 40px;
+      }
 
-        .book-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            position: relative;
-        }
+      .book-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        position: relative;
+      }
 
-        .book-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
+      .book-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      }
 
-        .book-cover {
-            height: 300px;
-            background-size: cover;
-            background-position: center;
-            background-color: #f5f5f5;
-            cursor: pointer;
-        }
+      .book-cover {
+        height: 300px;
+        background-size: cover;
+        background-position: center;
+        background-color: #f5f5f5;
+        cursor: pointer;
+      }
 
-        .book-info {
-            padding: 20px;
-            cursor: pointer;
-        }
+      .book-info {
+        padding: 20px;
+        cursor: pointer;
+      }
 
-        .book-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--main-green);
-            margin-bottom: 5px;
-        }
+      .book-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--main-green);
+        margin-bottom: 5px;
+      }
 
-        .book-author {
-            color: #666;
-            font-size: 0.9rem;
-        }
+      .book-author {
+        color: #666;
+        font-size: 0.9rem;
+      }
 
-        .book-menu {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            display: none;
-        }
+      .book-menu {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        display: none;
+      }
 
-        .menu-btn {
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
+      .menu-btn {
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
 
-        .menu-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            background: white;
-            min-width: 120px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border-radius: 5px;
-            overflow: hidden;
-            z-index: 100;
-        }
+      .menu-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        background: white;
+        min-width: 120px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+        z-index: 100;
+      }
 
-        .menu-dropdown a {
-            display: block;
-            padding: 10px 15px;
-            color: var(--main-green);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
+      .menu-dropdown a {
+        display: block;
+        padding: 10px 15px;
+        color: var(--main-green);
+        text-decoration: none;
+        transition: all 0.2s;
+      }
 
-        .menu-dropdown a:hover {
-            background-color: var(--light-green);
-        }
+      .menu-dropdown a:hover {
+        background-color: var(--light-green);
+      }
 
-        .book-menu:hover .menu-dropdown {
-            display: block;
-        }
+      .book-menu:hover .menu-dropdown {
+        display: block;
+      }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
 
-        .modal-title {
-            font-family: 'Cinzel Decorative', cursive;
-            color: var(--main-green);
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
+      .modal-title {
+        font-family: "Cinzel Decorative", cursive;
+        color: var(--main-green);
+        margin-top: 0;
+        margin-bottom: 20px;
+      }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+      .form-group {
+        margin-bottom: 20px;
+      }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--main-green);
-            font-weight: bold;
-        }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--main-green);
+        font-weight: bold;
+      }
 
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-family: 'Roboto', sans-serif;
-        }
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-family: "Roboto", sans-serif;
+      }
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
 
-        .modal-btn {
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Roboto', sans-serif;
-        }
+      .modal-btn {
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: "Roboto", sans-serif;
+      }
 
-        .modal-btn-primary {
-            background-color: var(--main-green);
-            color: white;
-            border: none;
-        }
+      .modal-btn-primary {
+        background-color: var(--main-green);
+        color: white;
+        border: none;
+      }
 
-        .modal-btn-secondary {
-            background-color: transparent;
-            color: var(--main-green);
-            border: 1px solid var(--main-green);
-        }
+      .modal-btn-secondary {
+        background-color: transparent;
+        color: var(--main-green);
+        border: 1px solid var(--main-green);
+      }
 
-        /* Admin only elements */
-        .admin-only {
-            display: none;
-        }
+      /* Admin only elements */
+      .admin-only {
+        display: none;
+      }
 
-        /* Show admin elements if user is admin */
-        body.admin .admin-only {
-            display: block;
-        }
+      /* Show admin elements if user is admin */
+      body.admin .admin-only {
+        display: block;
+      }
 
-        /* Delete button style */
-        .delete-btn {
-            background-color: #ff4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: none;
-        }
+      /* Delete button style */
+      .delete-btn {
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-top: 10px;
+        display: none;
+      }
 
-        body.admin .delete-btn {
-            display: inline-block;
-        }
+      body.admin .delete-btn {
+        display: inline-block;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h1 class="library-title">My Library</h1>
-        <div class="action-buttons">
-            <button class="action-btn admin-only" id="openModalBtn">
-                <span>+</span> Add a Book
-            </button>
-            <button class="action-btn admin-only" onclick="location.href='admin.html'">
-                <span>⚙️</span> Admin
-            </button>
-            <button class="action-btn" onclick="window.location.href='mylibrary.html'">
-                ← Back to Library
-            </button>
-        </div>
+      <h1 class="library-title">My Library</h1>
+      <div class="action-buttons">
+        <button class="action-btn admin-only" id="openModalBtn">
+          <span>+</span> Add a Book
+        </button>
+        <button
+          class="action-btn admin-only"
+          onclick="location.href='admin.html'"
+        >
+          <span>⚙️</span> Admin
+        </button>
+        <button
+          class="action-btn"
+          onclick="window.location.href='mylibrary.html'"
+        >
+          ← Back to Library
+        </button>
+      </div>
     </div>
 
     <div class="books-grid" id="booksGrid">
-        <!-- Books will be loaded here -->
+      <!-- Books will be loaded here -->
     </div>
 
     <!-- Add Book Modal -->
     <div class="modal" id="addBookModal">
-        <div class="modal-content">
-            <h2 class="modal-title">Add a New Book</h2>
-            <form id="addBookForm">
-                <div class="form-group">
-                    <label for="bookTitle">Book Title</label>
-                    <input type="text" id="bookTitle" required>
-                </div>
-                <div class="form-group">
-                    <label for="bookAuthor">Author</label>
-                    <input type="text" id="bookAuthor">
-                </div>
-                <div class="form-group">
-                    <label for="bookCover">Cover Image</label>
-                    <input type="file" id="bookCover" accept="image/*">
-                </div>
-                <div class="form-group">
-                    <label for="bookDescription">Description</label>
-                    <textarea id="bookDescription" rows="4"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="modal-btn modal-btn-secondary" id="cancelBtn">Cancel</button>
-                    <button type="submit" class="modal-btn modal-btn-primary">Add Book</button>
-                </div>
-            </form>
-        </div>
+      <div class="modal-content">
+        <h2 class="modal-title">Add a New Book</h2>
+        <form id="addBookForm">
+          <div class="form-group">
+            <label for="bookTitle">Book Title</label>
+            <input type="text" id="bookTitle" required />
+          </div>
+          <div class="form-group">
+            <label for="bookAuthor">Author</label>
+            <input type="text" id="bookAuthor" />
+          </div>
+          <div class="form-group">
+            <label for="bookCover">Cover Image</label>
+            <input type="file" id="bookCover" accept="image/*" />
+          </div>
+          <div class="form-group">
+            <label for="bookDescription">Description</label>
+            <textarea id="bookDescription" rows="4"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="modal-btn modal-btn-secondary"
+              id="cancelBtn"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="modal-btn modal-btn-primary">
+              Add Book
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script>
-        // ★★★ ADMIN SECURITY CHECK ★★★
-        function isAdmin() {
-            const currentUser = localStorage.getItem('username');
-            const isAdminFlag = localStorage.getItem('isAdmin') === 'true';
-            return isAdminFlag && currentUser?.toLowerCase() === "monadmin";
-        }
+      // ★★★ ADMIN SECURITY CHECK ★★★
+      function isAdmin() {
+        const currentUser = localStorage.getItem("username");
+        const isAdminFlag = localStorage.getItem("isAdmin") === "true";
+        return isAdminFlag && currentUser?.toLowerCase() === "monadmin";
+      }
 
-        // Set admin class on body if user is admin
-        if (isAdmin()) {
-            document.body.classList.add('admin');
-        }
+      // Set admin class on body if user is admin
+      if (isAdmin()) {
+        document.body.classList.add("admin");
+      }
 
-        // Load books from localStorage
-        function loadBooks() {
-function loadBooks() {
-    // AJOUT SPÉCIFIQUE
-    const defaultBook = {
-        id: 9999999999999,
-        title: "Who is the next prey?🐱‍👤",
-        author: "Lumaissae", // Nom d'auteur
-        description: "Have you ever thought that maybe you were born in a laboratory? That you’re just an experiment to someone… but somehow you still love being their object. Their experiment. Their creation💔",
-        cover: "https://img.freepik.com/photos-premium/femme-silhouette-mysterieuse-ai-generative_391229-10825.jpg" // NOUVELLE IMAGE VALIDÉE
-    };
+      const booksCollection = firebase.firestore().collection("books");
+      console.log("Books Collection: ", booksCollection);
 
-    let books = JSON.parse(localStorage.getItem('books')) || [];
-    
-    if (!books.some(b => b.id === defaultBook.id)) {
-        books.push(defaultBook);
-        localStorage.setItem('books', JSON.stringify(books));
-        
-        const chapter = {
-            id: Date.now(),
-            title: "CHAPTER1: the beginning",
-            content: "WILL BE AVAILABLE SOON😊😊",
-            date: new Date().toLocaleDateString('fr-FR')
-        };
-        localStorage.setItem(`book_${defaultBook.id}_chapters`, JSON.stringify([chapter]));
-    }
-
-    // RESTE DU CODE ORIGINAL
-    const booksGrid = document.getElementById('booksGrid');
-    booksGrid.innerHTML = books.map(book => `
-        <div class="book-card">
-            <div class="book-cover" onclick="window.location.href='book.html?id=${book.id}'" 
-                 style="background-image: url('${book.cover}')">
-                ${isAdmin() ? `
-                <div class="book-menu">
-                    <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
-                    <div class="menu-dropdown">
-                        <a href="book.html?id=${book.id}">View</a>
-                        <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
-                        <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-            <div class="book-info" onclick="window.location.href='book.html?id=${book.id}'">
-                <div class="book-title">${book.title}</div>
-                <div class="book-author">By ${book.author}</div>
-                ${isAdmin() ? `
-                <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')">
-                    Delete Book
-                </button>
-                ` : ''}
-            </div>
-        </div>
-    `).join('');
-}
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            const booksGrid = document.getElementById('booksGrid');
-            
-            booksGrid.innerHTML = books.map(book => `
-                <div class="book-card">
-                    <div class="book-cover" onclick="window.location.href='book.html?id=${book.id}'" 
-                         style="background-image: url('${book.cover || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000'}')">
-                        ${isAdmin() ? `
-                        <div class="book-menu">
-                            <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
-                            <div class="menu-dropdown">
-                                <a href="book.html?id=${book.id}">View</a>
-                                <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
-                                <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
+      // Load books from Firestore
+      function loadBooks() {
+        booksCollection
+          .get()
+          .then((snapshot) => {
+            const books = [];
+            snapshot.forEach((doc) => {
+              books.push({ id: doc.id, ...doc.data() });
+              console.log("Book: ", doc.id, " => ", doc.data());
+            });
+            console.log("Books: ", snapshot);
+            const booksGrid = document.getElementById("booksGrid");
+            booksGrid.innerHTML = books
+              .map(
+                (book) => `
+                    <div class="book-card">
+                        <div class="book-cover" onclick="window.location.href='book.html?id=${
+                          book.id
+                        }'" 
+                             style="background-image: url('${
+                               book.cover ||
+                               "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000"
+                             }')">
+                            ${
+                              isAdmin()
+                                ? `
+                            <div class="book-menu">
+                                <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
+                                <div class="menu-dropdown">
+                                    <a href="book.html?id=${book.id}">View</a>
+                                    <a href="#" onclick="event.stopPropagation(); editBook('${book.id}')">Edit</a>
+                                    <a href="#" onclick="event.stopPropagation(); deleteBook('${book.id}')">Delete</a>
+                                </div>
                             </div>
+                            `
+                                : ""
+                            }
                         </div>
-                        ` : ''}
+                        <div class="book-info" onclick="window.location.href='book.html?id=${
+                          book.id
+                        }'">
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-author">By ${
+                              book.author || "Unknown Author"
+                            }</div>
+                            ${
+                              isAdmin()
+                                ? `
+                            <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')">
+                                Delete Book
+                            </button>
+                            `
+                                : ""
+                            }
+                        </div>
                     </div>
-                    <div class="book-info" onclick="window.location.href='book.html?id=${book.id}'">
-                        <div class="book-title">${book.title}</div>
-                        <div class="book-author">By ${book.author || 'Unknown Author'}</div>
-                        ${isAdmin() ? `
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')">
-                            Delete Book
-                        </button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
+                `
+              )
+              .join("");
+          })
+          .catch((error) => {
+            console.error("Error loading books: ", error);
+          });
+      }
+
+      // Modal management
+      const modal = document.getElementById("addBookModal");
+      const openModalBtn = document.getElementById("openModalBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const addBookForm = document.getElementById("addBookForm");
+
+      openModalBtn.addEventListener("click", () => {
+        if (!isAdmin()) {
+          alert("Admin privileges required");
+          return;
+        }
+        modal.style.display = "flex";
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+        addBookForm.reset();
+      });
+
+      // Add book with admin verification
+      addBookForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        if (!isAdmin()) {
+          alert("Admin privileges required");
+          return;
         }
 
-        // Modal management
-        const modal = document.getElementById('addBookModal');
-        const openModalBtn = document.getElementById('openModalBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const addBookForm = document.getElementById('addBookForm');
+        const title = document.getElementById("bookTitle").value.trim();
+        const author = document.getElementById("bookAuthor").value.trim();
+        const description = document
+          .getElementById("bookDescription")
+          .value.trim();
+        const coverFile = document.getElementById("bookCover").files[0];
 
-        openModalBtn.addEventListener('click', () => {
-            if (!isAdmin()) {
-                alert("Admin privileges required");
-                return;
-            }
-            modal.style.display = 'flex';
-        });
+        if (!title) {
+          alert("Please enter a book title");
+          return;
+        }
 
-        cancelBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-            addBookForm.reset();
-        });
+        const newBook = {
+          title: title,
+          author: author,
+          description: description,
+        };
 
-        // Add book with admin verification
-        addBookForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (!isAdmin()) {
-                alert("Admin privileges required");
-                return;
-            }
-            
-            const title = document.getElementById('bookTitle').value.trim();
-            const author = document.getElementById('bookAuthor').value.trim();
-            const description = document.getElementById('bookDescription').value.trim();
-            const coverFile = document.getElementById('bookCover').files[0];
-            
-            if (!title) {
-                alert('Please enter a book title');
-                return;
-            }
+        if (coverFile) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            newBook.cover = e.target.result;
+            saveBook(newBook);
+          };
+          reader.readAsDataURL(coverFile);
+        } else {
+          saveBook(newBook);
+        }
+      });
 
-            const newBook = {
-                id: Date.now(),
-                title: title,
-                author: author,
-                description: description
-            };
-
-            if (coverFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    newBook.cover = e.target.result;
-                    saveBook(newBook);
-                };
-                reader.readAsDataURL(coverFile);
-            } else {
-                saveBook(newBook);
-            }
-        });
-
-        function saveBook(book) {
-            if (!isAdmin()) return;
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            books.push(book);
-            localStorage.setItem('books', JSON.stringify(books));
-            
-            modal.style.display = 'none';
+      // Save book to Firestore
+      function saveBook(book) {
+        booksCollection
+          .add(book)
+          .then(() => {
+            modal.style.display = "none";
             addBookForm.reset();
             loadBooks();
-        }
+          })
+          .catch((error) => {
+            console.error("Error saving book: ", error);
+          });
+      }
 
-        // Edit book with admin verification
-        function editBook(bookId) {
-            if (!isAdmin()) {
-                alert("Admin privileges required");
-                return;
-            }
-            
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            const book = books.find(b => b.id == bookId);
-            
-            if (book) {
-                document.getElementById('bookTitle').value = book.title;
-                document.getElementById('bookAuthor').value = book.author || '';
-                document.getElementById('bookDescription').value = book.description || '';
-                
-                modal.style.display = 'flex';
-                
-                addBookForm.onsubmit = function(e) {
-                    e.preventDefault();
-                    if (!isAdmin()) return;
-                    
-                    book.title = document.getElementById('bookTitle').value.trim();
-                    book.author = document.getElementById('bookAuthor').value.trim();
-                    book.description = document.getElementById('bookDescription').value.trim();
-                    
-                    const coverFile = document.getElementById('bookCover').files[0];
-                    if (coverFile) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            book.cover = e.target.result;
-                            updateBook(books);
-                        };
-                        reader.readAsDataURL(coverFile);
-                    } else {
-                        updateBook(books);
-                    }
-                };
-            }
-        }
+      // Edit book in Firestore
+      function editBook(bookId) {
+        booksCollection
+          .doc(bookId)
+          .get()
+          .then((doc) => {
+            if (doc.exists) {
+              const book = doc.data();
+              document.getElementById("bookTitle").value = book.title;
+              document.getElementById("bookAuthor").value = book.author || "";
+              document.getElementById("bookDescription").value =
+                book.description || "";
 
-        function updateBook(books) {
-            if (!isAdmin()) return;
-            localStorage.setItem('books', JSON.stringify(books));
-            modal.style.display = 'none';
-            addBookForm.reset();
-            loadBooks();
-            
-            // Reset form to default behavior
-            addBookForm.onsubmit = function(e) {
+              modal.style.display = "flex";
+              addBookForm.onsubmit = function (e) {
                 e.preventDefault();
-                if (!isAdmin()) return;
-                
-                const title = document.getElementById('bookTitle').value.trim();
-                const author = document.getElementById('bookAuthor').value.trim();
-                const description = document.getElementById('bookDescription').value.trim();
-                const coverFile = document.getElementById('bookCover').files[0];
-                
-                if (!title) {
-                    alert('Please enter a book title');
-                    return;
-                }
-
-                const newBook = {
-                    id: Date.now(),
-                    title: title,
-                    author: author,
-                    description: description
+                const updatedBook = {
+                  title: document.getElementById("bookTitle").value.trim(),
+                  author: document.getElementById("bookAuthor").value.trim(),
+                  description: document
+                    .getElementById("bookDescription")
+                    .value.trim(),
                 };
-
-                if (coverFile) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        newBook.cover = e.target.result;
-                        saveBook(newBook);
-                    };
-                    reader.readAsDataURL(coverFile);
-                } else {
-                    saveBook(newBook);
-                }
-            };
-        }
-
-        // Delete book with admin verification
-        function deleteBook(bookId) {
-            if (!isAdmin()) {
-                alert("Admin privileges required");
-                return;
+                booksCollection
+                  .doc(bookId)
+                  .update(updatedBook)
+                  .then(() => {
+                    modal.style.display = "none";
+                    addBookForm.reset();
+                    loadBooks();
+                  })
+                  .catch((error) => {
+                    console.error("Error updating book: ", error);
+                  });
+              };
             }
-            
-            if (confirm('Are you sure you want to delete this book?')) {
-                let books = JSON.parse(localStorage.getItem('books')) || [];
-                books = books.filter(book => book.id != bookId);
-                localStorage.setItem('books', JSON.stringify(books));
-                loadBooks();
-            }
-        }
+          })
+          .catch((error) => {
+            console.error("Error fetching book: ", error);
+          });
+      }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', loadBooks);
+      // Delete book from Firestore
+      function deleteBook(bookId) {
+        console.log("Deleting book with ID: ", bookId);
+        if (confirm("Are you sure you want to delete this book?")) {
+          booksCollection
+            .doc(bookId)
+            .delete()
+            .then(() => {
+              loadBooks();
+            })
+            .catch((error) => {
+              console.error("Error deleting book: ", error);
+            });
+        }
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", loadBooks);
     </script>
-</body>
+  </body>
 </html>
