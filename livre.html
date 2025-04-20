@@ -293,20 +293,19 @@
       </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    <script src="js/firebase.js"></script>
     <script>
-      // Global variables
       let currentChapter = 1;
       let bookId = null;
-      let chapters = [];
-      const currentUser = localStorage.getItem("username") || "anonymous";
 
       function getBookId() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("bookId");
       }
 
-      // Load chapter data
-      function loadChapterData() {
+      async function loadChapterData() {
         const urlParams = new URLSearchParams(window.location.search);
         bookId = getBookId();
         const chapterParam = urlParams.get("chapter");
@@ -321,29 +320,44 @@
           return;
         }
 
-        // Load book
-        const books = JSON.parse(localStorage.getItem("books")) || [];
-        const book = books.find((b) => b.id == bookId);
+        try {
+          // Load book details
+          const bookDoc = await booksCollection.doc(bookId).get();
+          if (bookDoc.exists) {
+            const book = bookDoc.data();
+            document.getElementById("bookTitleDisplay").textContent =
+              book.title;
+          } else {
+            alert("Book not found");
+            window.location.href = "mylibrary.html";
+            return;
+          }
 
-        if (book) {
-          document.getElementById("bookTitleDisplay").textContent = book.title;
+          // Load chapters
+          const chaptersSnapshot = await booksCollection
+            .doc(bookId)
+            .collection("chapters")
+            .orderBy("createdAt", "asc")
+            .get();
+
+          const chapters = chaptersSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          if (chapters.length === 0) {
+            document.getElementById("chapterContent").innerHTML =
+              "<p>This book has no chapters yet</p>";
+            return;
+          }
+
+          showChapter(chapters, currentChapter);
+        } catch (error) {
+          console.error("Error loading chapter data:", error);
         }
-
-        // Load chapters
-        const chaptersKey = `book_${bookId}_chapters`;
-        chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
-
-        if (chapters.length === 0) {
-          document.getElementById("chapterContent").innerHTML =
-            "<p>This book has no chapters yet</p>";
-          return;
-        }
-
-        // Show current chapter
-        showChapter(currentChapter);
       }
 
-      function showChapter(chapterNum) {
+      function showChapter(chapters, chapterNum) {
         if (chapterNum < 1 || chapterNum > chapters.length) {
           alert("Chapter not available");
           return;
@@ -357,118 +371,156 @@
 
         // Update Next button
         const nextBtn = document.getElementById("nextChapterBtn");
-        if (chapterNum >= chapters.length) {
-          nextBtn.textContent = "Next";
-        } else {
-          nextBtn.textContent = "Next";
-        }
+        nextBtn.onclick = () => {
+          if (chapterNum < chapters.length) {
+            currentChapter++;
+            showChapter(chapters, currentChapter);
+            window.history.pushState(
+              {},
+              "",
+              `?bookId=${bookId}&chapter=${currentChapter}`
+            );
+          }
+        };
 
         // Load likes
-        updateLikeCount();
+        updateLikeCount(chapter.id);
 
         // Load comments
-        loadComments();
+        loadComments(chapter.id);
       }
 
-      // Like functionality
-      function updateLikeCount() {
-        const likesKey = `book_${bookId}_chapter_${currentChapter}_likes`;
-        const likes = JSON.parse(localStorage.getItem(likesKey)) || {
-          count: 0,
-          users: {},
-        };
+      async function updateLikeCount(chapterId) {
+        try {
+          const chapterDoc = await booksCollection
+            .doc(bookId)
+            .collection("chapters")
+            .doc(chapterId)
+            .get();
 
-        document.getElementById("likeCount").textContent = likes.count;
+          const chapter = chapterDoc.data();
+          const likeCount = chapter.likes || 0;
+          document.getElementById("likeCount").textContent = likeCount;
 
-        const likeBtn = document.getElementById("likeBtn");
-        if (likes.users[currentUser]) {
-          likeBtn.classList.add("liked");
-          document.getElementById("likeIcon").textContent = "👍";
-        } else {
-          likeBtn.classList.remove("liked");
-          document.getElementById("likeIcon").textContent = "👍";
+          const likeBtn = document.getElementById("likeBtn");
+          const username = localStorage.getItem("username") || "anonymous";
+          if (chapter[`user_${username}_liked`]) {
+            likeBtn.classList.add("liked");
+          } else {
+            likeBtn.classList.remove("liked");
+          }
+        } catch (error) {
+          console.error("Error updating like count:", error);
         }
       }
 
-      document.getElementById("likeBtn").addEventListener("click", function () {
-        const likesKey = `book_${bookId}_chapter_${currentChapter}_likes`;
-        let likes = JSON.parse(localStorage.getItem(likesKey)) || {
-          count: 0,
-          users: {},
-        };
+      document.getElementById("likeBtn").addEventListener("click", async () => {
+        const username = localStorage.getItem("username") || "anonymous";
+        const chapterId = `chapter_${currentChapter}`;
 
-        if (likes.users[currentUser]) {
-          // Unlike
-          likes.count--;
-          delete likes.users[currentUser];
-          this.classList.remove("liked");
-        } else {
-          // Like
-          likes.count++;
-          likes.users[currentUser] = true;
-          this.classList.add("liked");
+        try {
+          const chapterRef = booksCollection
+            .doc(bookId)
+            .collection("chapters")
+            .doc(chapterId);
+
+          const chapterDoc = await chapterRef.get();
+          const chapter = chapterDoc.data();
+
+          if (chapter[`user_${username}_liked`]) {
+            await chapterRef.update({
+              likes: firebase.firestore.FieldValue.increment(-1),
+              [`user_${username}_liked`]:
+                firebase.firestore.FieldValue.delete(),
+            });
+          } else {
+            await chapterRef.update({
+              likes: firebase.firestore.FieldValue.increment(1),
+              [`user_${username}_liked`]: true,
+            });
+          }
+
+          updateLikeCount(chapterId);
+        } catch (error) {
+          console.error("Error liking chapter:", error);
         }
-
-        localStorage.setItem(likesKey, JSON.stringify(likes));
-        updateLikeCount();
       });
 
-      // Comments functionality
-      function loadComments() {
-        const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
-        const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
+      async function loadComments(chapterId) {
         const commentsContainer = document.getElementById("commentsContainer");
+        try {
+          const commentsSnapshot = await booksCollection
+            .doc(bookId)
+            .collection("chapters")
+            .doc(chapterId)
+            .collection("comments")
+            .orderBy("timestamp", "desc")
+            .get();
 
-        if (comments.length === 0) {
-          commentsContainer.innerHTML = "<p>No comments yet</p>";
-        } else {
-          commentsContainer.innerHTML = comments
-            .map((comment, index) => {
-              const canDelete = comment.author === currentUser;
+          if (commentsSnapshot.empty) {
+            commentsContainer.innerHTML = "<p>No comments yet</p>";
+            return;
+          }
+
+          commentsContainer.innerHTML = commentsSnapshot.docs
+            .map((doc) => {
+              const comment = doc.data();
+              const canDelete =
+                comment.author === localStorage.getItem("username") ||
+                "anonymous";
+              const commentDate = comment.timestamp
+                ? new Date(comment.timestamp.toDate()).toLocaleString()
+                : "Unknown Date";
+
               return `
-                        <div class="comment">
-                            <div>
-                                <span class="comment-author">${
-                                  comment.author
-                                }</span>
-                                <span class="comment-date">${
-                                  comment.date
-                                }</span>
-                                ${
-                                  canDelete
-                                    ? `
-                                <span class="comment-menu">
-                                    <button class="menu-btn">⋯</button>
-                                    <div class="menu-dropdown">
-                                        <a href="#" onclick="event.preventDefault(); deleteComment(${index})">Delete</a>
-                                    </div>
-                                </span>
-                                `
-                                    : ""
-                                }
-                            </div>
-                            <p class="comment-text">${comment.text}</p>
-                        </div>
-                    `;
+                <div class="comment">
+                  <div>
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-date">${commentDate}</span>
+                    ${
+                      canDelete
+                        ? `
+                    <span class="comment-menu">
+                      <button class="menu-btn" onclick="event.stopPropagation()">⋯</button>
+                      <div class="menu-dropdown">
+                        <a href="#" onclick="event.preventDefault(); deleteComment('${doc.id}', '${chapterId}')">Delete</a>
+                      </div>
+                    </span>
+                    `
+                        : ""
+                    }
+                  </div>
+                  <p class="comment-text">${comment.text}</p>
+                </div>
+              `;
             })
             .join("");
+        } catch (error) {
+          console.error("Error loading comments:", error);
         }
       }
 
-      function deleteComment(commentIndex) {
+      async function deleteComment(commentId, chapterId) {
         if (confirm("Delete this comment?")) {
-          const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
-          const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
-          comments.splice(commentIndex, 1);
+          try {
+            await booksCollection
+              .doc(bookId)
+              .collection("chapters")
+              .doc(chapterId)
+              .collection("comments")
+              .doc(commentId)
+              .delete();
 
-          localStorage.setItem(commentsKey, JSON.stringify(comments));
-          loadComments();
+            loadComments(chapterId);
+          } catch (error) {
+            console.error("Error deleting comment:", error);
+          }
         }
       }
 
       document
         .getElementById("commentForm")
-        .addEventListener("submit", function (e) {
+        .addEventListener("submit", async function (e) {
           e.preventDefault();
 
           const commentText = document
@@ -476,41 +528,25 @@
             .value.trim();
           if (!commentText) return;
 
-          const currentDate = new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          const chapterId = `chapter_${currentChapter}`;
+          const username = localStorage.getItem("username") || "anonymous";
 
-          const newComment = {
-            author: currentUser,
-            date: currentDate,
-            text: commentText,
-          };
+          try {
+            await booksCollection
+              .doc(bookId)
+              .collection("chapters")
+              .doc(chapterId)
+              .collection("comments")
+              .add({
+                author: username,
+                text: commentText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              });
 
-          const commentsKey = `book_${bookId}_chapter_${currentChapter}_comments`;
-          const comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
-          comments.push(newComment);
-
-          localStorage.setItem(commentsKey, JSON.stringify(newComment));
-          document.getElementById("commentText").value = "";
-          loadComments();
-        });
-
-      // Next chapter button
-      document
-        .getElementById("nextChapterBtn")
-        .addEventListener("click", function () {
-          if (currentChapter < chapters.length) {
-            currentChapter++;
-            showChapter(currentChapter);
-            window.history.pushState(
-              {},
-              "",
-              `?bookId=${bookId}&chapter=${currentChapter}`
-            );
+            document.getElementById("commentText").value = "";
+            loadComments(chapterId);
+          } catch (error) {
+            console.error("Error adding comment:", error);
           }
         });
 

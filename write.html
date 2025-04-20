@@ -89,7 +89,17 @@
           return;
         }
 
-        // Load available books from Firestore
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookId = urlParams.get("bookId");
+        const chapterId = urlParams.get("chapterId");
+
+        if (!bookId) {
+          alert("Aucun livre sélectionné");
+          window.location.href = "mylibrary.html";
+          return;
+        }
+
+        // Load available books
         const bookSelect = document.getElementById("bookSelect");
         try {
           const booksSnapshot = await booksCollection.get();
@@ -101,14 +111,28 @@
             bookSelect.appendChild(option);
           });
 
-          // If a bookId is specified in the URL, select it
-          const urlParams = new URLSearchParams(window.location.search);
-          const bookId = urlParams.get("bookId");
-          if (bookId) {
-            bookSelect.value = bookId;
+          bookSelect.value = bookId;
+
+          // If editing an existing chapter, load its data
+          if (chapterId) {
+            const chapterDoc = await booksCollection
+              .doc(bookId)
+              .collection("chapters")
+              .doc(chapterId)
+              .get();
+
+            if (chapterDoc.exists) {
+              const chapter = chapterDoc.data();
+              document.getElementById("chapterTitle").value =
+                chapter.title || "";
+              document.getElementById("chapterContent").value =
+                chapter.content || "";
+            } else {
+              alert("Chapitre introuvable");
+            }
           }
         } catch (error) {
-          console.error("Error loading books:", error);
+          console.error("Error loading books or chapter:", error);
         }
       });
 
@@ -121,24 +145,37 @@
           const content = document
             .getElementById("chapterContent")
             .value.trim();
+          const urlParams = new URLSearchParams(window.location.search);
+          const chapterId = urlParams.get("chapterId");
 
           if (!bookId || !title || !content) {
             alert("Veuillez remplir tous les champs");
             return;
           }
 
-          const newChapter = {
+          const chapterData = {
             title: title,
             content: content,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
           try {
-            // Save the chapter to Firestore
-            await booksCollection
-              .doc(bookId)
-              .collection("chapters")
-              .add(newChapter);
+            if (chapterId) {
+              // Update existing chapter
+              await booksCollection
+                .doc(bookId)
+                .collection("chapters")
+                .doc(chapterId)
+                .update(chapterData);
+            } else {
+              // Add new chapter
+              chapterData.createdAt =
+                firebase.firestore.FieldValue.serverTimestamp();
+              await booksCollection
+                .doc(bookId)
+                .collection("chapters")
+                .add(chapterData);
+            }
 
             // Redirect to the chapter list
             window.location.href = `chapitre.html?bookId=${bookId}`;
