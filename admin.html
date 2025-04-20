@@ -310,6 +310,7 @@
           const allComments = [];
 
           // Process books and chapters
+
           for (const book of books) {
             // Book views and likes
             totalViews += book.views || 0;
@@ -334,8 +335,12 @@
             });
 
             // Fetch chapters for the book
-            const chapters = book.chapters || [];
-            totalChapters += chapters.length;
+            const chapters =
+              (await booksCollection
+                .doc(book.id)
+                .collection("chapters")
+                .get()) || [];
+            totalChapters += chapters.docs.length;
 
             // Add to popular books
             if (book.views > 0 || book.likes > 0) {
