@@ -1,131 +1,154 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Écrire un chapitre - GreenLeaf</title>
     <style>
-        :root {
-            --main-green: #2a5c3d;
-            --light-green: #e8f5e9;
-            --gold: #d4af37;
-            --cream: #fffef6;
-        }
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--cream);
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .book-selector {
-            margin-bottom: 20px;
-        }
-        
-        select, input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        
-        button {
-            background-color: var(--main-green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+      :root {
+        --main-green: #2a5c3d;
+        --light-green: #e8f5e9;
+        --gold: #d4af37;
+        --cream: #fffef6;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: var(--cream);
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .book-selector {
+        margin-bottom: 20px;
+      }
+
+      select,
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      button {
+        background-color: var(--main-green);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Écrire un nouveau chapitre</h1>
-    
+
     <div class="book-selector">
-        <label for="bookSelect">Sélectionner un livre :</label>
-        <select id="bookSelect">
-            <!-- Les options seront ajoutées par JavaScript -->
-        </select>
+      <label for="bookSelect">Sélectionner un livre :</label>
+      <select id="bookSelect">
+        <!-- Les options seront ajoutées par JavaScript -->
+      </select>
     </div>
-    
-    <input type="text" id="chapterTitle" placeholder="Titre du chapitre" required>
-    <textarea id="chapterContent" rows="15" placeholder="Contenu du chapitre..." required></textarea>
-    
+
+    <input
+      type="text"
+      id="chapterTitle"
+      placeholder="Titre du chapitre"
+      required
+    />
+    <textarea
+      id="chapterContent"
+      rows="15"
+      placeholder="Contenu du chapitre..."
+      required
+    ></textarea>
+
     <button id="publishBtn">Publier le chapitre</button>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+    <script src="js/firebase.js"></script>
     <script>
-        // ★★★ PROTECTION ADMIN ★★★
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = localStorage.getItem('username');
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+      // ★★★ PROTECTION ADMIN ★★★
+      document.addEventListener("DOMContentLoaded", async () => {
+        const currentUser = localStorage.getItem("username");
+        const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-            if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
-                document.body.innerHTML = `
+        if (!isAdmin || currentUser?.toLowerCase() !== "monadmin") {
+          document.body.innerHTML = `
                     <div style="text-align:center; padding:50px; font-family:Arial;">
                         <h1 style="color:#2a5c3d;">Accès refusé</h1>
                         <p>Vous n'avez pas les droits administrateur.</p>
                         <a href="mylibrary.html" style="color:var(--main-green);">Retour à la bibliothèque</a>
                     </div>
                 `;
-                return;
-            }
+          return;
+        }
 
-            // Charger les livres disponibles
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            const bookSelect = document.getElementById('bookSelect');
-            
-            books.forEach(book => {
-                const option = document.createElement('option');
-                option.value = book.id;
-                option.textContent = book.title;
-                bookSelect.appendChild(option);
-            });
-            
-            // Si un bookId est spécifié dans l'URL, le sélectionner
-            const urlParams = new URLSearchParams(window.location.search);
-            const bookId = urlParams.get('bookId');
-            if (bookId) {
-                bookSelect.value = bookId;
-            }
-        });
-        
-        // Gestion de la publication
-        document.getElementById('publishBtn').addEventListener('click', () => {
-            const bookId = document.getElementById('bookSelect').value;
-            const title = document.getElementById('chapterTitle').value;
-            const content = document.getElementById('chapterContent').value;
-            
-            if (!bookId || !title || !content) {
-                alert('Veuillez remplir tous les champs');
-                return;
-            }
-            
-            const newChapter = {
-                id: Date.now(),
-                title: title,
-                content: content,
-                date: new Date().toLocaleDateString('fr-FR', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-            };
-            
-            // Sauvegarder le chapitre
-            const chaptersKey = `book_${bookId}_chapters`;
-            const chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
-            chapters.push(newChapter);
-            localStorage.setItem(chaptersKey, JSON.stringify(chapters));
-            
-            // Rediriger vers la liste des chapitres
+        // Load available books from Firestore
+        const bookSelect = document.getElementById("bookSelect");
+        try {
+          const booksSnapshot = await booksCollection.get();
+          booksSnapshot.forEach((doc) => {
+            const book = doc.data();
+            const option = document.createElement("option");
+            option.value = doc.id;
+            option.textContent = book.title;
+            bookSelect.appendChild(option);
+          });
+
+          // If a bookId is specified in the URL, select it
+          const urlParams = new URLSearchParams(window.location.search);
+          const bookId = urlParams.get("bookId");
+          if (bookId) {
+            bookSelect.value = bookId;
+          }
+        } catch (error) {
+          console.error("Error loading books:", error);
+        }
+      });
+
+      // Handle chapter publishing
+      document
+        .getElementById("publishBtn")
+        .addEventListener("click", async () => {
+          const bookId = document.getElementById("bookSelect").value;
+          const title = document.getElementById("chapterTitle").value.trim();
+          const content = document
+            .getElementById("chapterContent")
+            .value.trim();
+
+          if (!bookId || !title || !content) {
+            alert("Veuillez remplir tous les champs");
+            return;
+          }
+
+          const newChapter = {
+            title: title,
+            content: content,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          };
+
+          try {
+            // Save the chapter to Firestore
+            await booksCollection
+              .doc(bookId)
+              .collection("chapters")
+              .add(newChapter);
+
+            // Redirect to the chapter list
             window.location.href = `chapitre.html?bookId=${bookId}`;
+          } catch (error) {
+            console.error("Error saving chapter:", error);
+            alert(
+              "Erreur lors de la publication du chapitre. Veuillez réessayer."
+            );
+          }
         });
     </script>
-</body>
+  </body>
 </html>

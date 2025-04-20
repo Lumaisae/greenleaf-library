@@ -1,306 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chapters - GreenLeaf</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+
+    <script src="js/firebase.js"></script>
+
     <style>
-        :root {
-            --main-green: #2a5c3d;
-            --light-green: #e8f5e9;
-            --gold: #d4af37;
-            --cream: #fffef6;
-        }
+      :root {
+        --main-green: #2a5c3d;
+        --light-green: #e8f5e9;
+        --gold: #d4af37;
+        --cream: #fffef6;
+      }
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--cream);
-            min-height: 100vh;
-            position: relative;
-            background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000');
-            background-size: cover;
-            background-position: center;
-            background-blend-mode: overlay;
-        }
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--cream);
+        min-height: 100vh;
+        position: relative;
+        background-image: url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000");
+        background-size: cover;
+        background-position: center;
+        background-blend-mode: overlay;
+      }
 
+      .header {
+        padding: 20px 40px;
+        background-color: rgba(255, 254, 246, 0.9);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .page-title {
+        font-family: "Cinzel Decorative", cursive;
+        color: var(--main-green);
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .add-chapter-btn {
+        background: var(--main-green);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "Roboto", sans-serif;
+        transition: all 0.3s;
+      }
+
+      .add-chapter-btn:hover {
+        background: #1e4a30;
+        transform: translateY(-2px);
+      }
+
+      .chapters-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      .chapters-list {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .chapter-item {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+        position: relative;
+      }
+
+      .chapter-item:last-child {
+        border-bottom: none;
+      }
+
+      .chapter-item:hover {
+        background-color: rgba(232, 245, 233, 0.5);
+      }
+
+      .chapter-info {
+        flex: 1;
+        cursor: pointer;
+      }
+
+      .chapter-number {
+        font-weight: bold;
+        color: var(--main-green);
+        margin-right: 10px;
+      }
+
+      .chapter-title {
+        color: #333;
+      }
+
+      .chapter-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: var(--main-green);
+        transition: all 0.2s;
+        padding: 5px;
+      }
+
+      .action-btn:hover {
+        transform: scale(1.2);
+      }
+
+      .no-chapters {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+      }
+
+      .back-btn {
+        background: var(--main-green);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .admin-mode {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--gold);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      @media (max-width: 768px) {
         .header {
-            padding: 20px 40px;
-            background-color: rgba(255, 254, 246, 0.9);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            font-family: 'Cinzel Decorative', cursive;
-            color: var(--main-green);
-            margin: 0;
-            font-size: 2rem;
-        }
-
-        .add-chapter-btn {
-            background: var(--main-green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Roboto', sans-serif;
-            transition: all 0.3s;
-        }
-
-        .add-chapter-btn:hover {
-            background: #1e4a30;
-            transform: translateY(-2px);
+          flex-direction: column;
+          gap: 15px;
+          padding: 15px;
         }
 
         .chapters-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
+          margin: 20px auto;
         }
-
-        .chapters-list {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .chapter-item {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .chapter-item:last-child {
-            border-bottom: none;
-        }
-
-        .chapter-item:hover {
-            background-color: rgba(232, 245, 233, 0.5);
-        }
-
-        .chapter-info {
-            flex: 1;
-            cursor: pointer;
-        }
-
-        .chapter-number {
-            font-weight: bold;
-            color: var(--main-green);
-            margin-right: 10px;
-        }
-
-        .chapter-title {
-            color: #333;
-        }
-
-        .chapter-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--main-green);
-            transition: all 0.2s;
-            padding: 5px;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.2);
-        }
-
-        .no-chapters {
-            text-align: center;
-            padding: 30px;
-            color: #666;
-        }
-
-        .back-btn {
-            background: var(--main-green);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            display: block;
-            width: 100%;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .admin-mode {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--gold);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px;
-            }
-            
-            .chapters-container {
-                margin: 20px auto;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h1 class="page-title" id="bookTitleDisplay">Chapters</h1>
-        <button class="add-chapter-btn" id="addChapterBtn" style="display: none;">
-            <span>+</span> Add Chapter
-        </button>
+      <h1 class="page-title" id="bookTitleDisplay">Chapters</h1>
+      <button class="add-chapter-btn" id="addChapterBtn" style="display: none">
+        <span>+</span> Add Chapter
+      </button>
     </div>
 
     <div class="chapters-container" id="mainContainer">
-        <div class="chapters-list" id="chaptersList">
-            <div class="no-chapters">Loading...</div>
-        </div>
+      <div class="chapters-list" id="chaptersList">
+        <div class="no-chapters">Loading...</div>
+      </div>
     </div>
 
     <script>
-        // ★★★ PROTECTION ADMIN ★★★
-        const currentUser = localStorage.getItem('username');
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        
-        // Afficher le bouton Add Chapter seulement pour l'admin
-        if (isAdmin && currentUser?.toLowerCase() === "monadmin") {
-            document.getElementById('addChapterBtn').style.display = 'flex';
+      // ★★★ PROTECTION ADMIN ★★★
+      const currentUser = localStorage.getItem("username");
+      const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+      // Show the "Add Chapter" button only for admin
+      if (isAdmin && currentUser?.toLowerCase() === "monadmin") {
+        document.getElementById("addChapterBtn").style.display = "flex";
+      }
+
+      // Get book ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookId = urlParams.get("bookId");
+
+      async function loadChapters() {
+        if (!bookId) {
+          window.location.href = "mylibrary.html";
+          return;
         }
 
-        // Get book ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const bookId = urlParams.get('bookId');
+        try {
+          // Fetch book details
+          const bookDoc = await booksCollection.doc(bookId).get();
+          if (!bookDoc.exists) {
+            document.getElementById("chaptersList").innerHTML = `
+                        <div class="no-chapters">
+                            <p>Book not found</p>
+                            <button class="back-btn" onclick="window.location.href='mylibrary.html'">Back to Library</button>
+                        </div>
+                    `;
+            return;
+          }
 
-        function loadChapters() {
-            if (!bookId) {
-                window.location.href = 'mylibrary.html';
-                return;
-            }
+          const book = bookDoc.data();
+          document.getElementById(
+            "bookTitleDisplay"
+          ).textContent = `Chapters: ${book.title}`;
 
-            // Load book
-            const books = JSON.parse(localStorage.getItem('books')) || [];
-            const book = books.find(b => b.id == bookId);
-            
-            if (!book) {
-                document.getElementById('chaptersList').innerHTML = `
+          // Fetch chapters
+          const chaptersSnapshot = await booksCollection
+            .doc(bookId)
+            .collection("chapters")
+            .orderBy("createdAt", "asc")
+            .get();
+
+          const chapters = chaptersSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          const chaptersList = document.getElementById("chaptersList");
+
+          if (chapters.length === 0) {
+            chaptersList.innerHTML = `
+                        <div class="no-chapters">
+                            <p>This book doesn't have any chapters yet</p>
+                            ${
+                              isAdmin
+                                ? '<button class="back-btn" onclick="window.location.href=\'mylibrary.html\'">Back to Library</button>'
+                                : ""
+                            }
+                        </div>
+                    `;
+          } else {
+            chaptersList.innerHTML = chapters
+              .map(
+                (chapter, index) => `
+                                <div class="chapter-item">
+                                    <div class="chapter-info" onclick="window.location.href='livre.html?bookId=${bookId}&chapter=${
+                  index + 1
+                }'">
+                                        <span class="chapter-number">${
+                                          index + 1
+                                        }.</span>
+                                        <span class="chapter-title">${
+                                          chapter.title
+                                        }</span>
+                                    </div>
+                                    ${
+                                      isAdmin &&
+                                      currentUser?.toLowerCase() === "monadmin"
+                                        ? `
+                                    <div class="chapter-actions">
+                                        <button class="action-btn" title="Edit" onclick="event.stopPropagation(); window.location.href='write.html?bookId=${bookId}&chapterId=${chapter.id}'">✏️</button>
+                                        <button class="action-btn" title="Delete" onclick="event.stopPropagation(); deleteChapter('${bookId}', '${chapter.id}')">🗑️</button>
+                                        <button class="action-btn" title="Share" onclick="event.stopPropagation(); shareChapter('${book.title}', '${chapter.title}')">🔗</button>
+                                    </div>
+                                    `
+                                        : ""
+                                    }
+                                </div>
+                            `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Error loading chapters:", error);
+          document.getElementById("chaptersList").innerHTML = `
                     <div class="no-chapters">
-                        <p>Book not found</p>
-                        <button class="back-btn" onclick="window.location.href='mylibrary.html'">Back to Library</button>
+                        <p>Error loading chapters. Please try again later.</p>
                     </div>
                 `;
-                return;
-            }
-
-            // Display book title
-            document.getElementById('bookTitleDisplay').textContent = `Chapters: ${book.title}`;
-            
-            // Load chapters
-            const chaptersKey = `book_${bookId}_chapters`;
-            const chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
-            
-            const chaptersList = document.getElementById('chaptersList');
-            
-            if (chapters.length === 0) {
-                chaptersList.innerHTML = `
-                    <div class="no-chapters">
-                        <p>This book doesn't have any chapters yet</p>
-                        ${isAdmin ? '<button class="back-btn" onclick="window.location.href=\'mylibrary.html\'">Back to Library</button>' : ''}
-                    </div>
-                `;
-            } else {
-                chaptersList.innerHTML = chapters.map((chapter, index) => `
-                    <div class="chapter-item">
-                        <div class="chapter-info" onclick="window.location.href='livre.html?bookId=${bookId}&chapter=${index + 1}'">
-                            <span class="chapter-number">${index + 1}.</span>
-                            <span class="chapter-title">${chapter.title}</span>
-                        </div>
-                        ${isAdmin && currentUser?.toLowerCase() === "monadmin" ? `
-                        <div class="chapter-actions">
-                            <button class="action-btn" title="Edit" onclick="event.stopPropagation(); window.location.href='write.html?bookId=${bookId}&chapterId=${chapter.id}'">✏️</button>
-                            <button class="action-btn" title="Delete" onclick="event.stopPropagation(); deleteChapter('${bookId}', '${chapter.id}')">🗑️</button>
-                            <button class="action-btn" title="Share" onclick="event.stopPropagation(); shareChapter('${book.title}', '${chapter.title}')">🔗</button>
-                        </div>
-                        ` : ''}
-                    </div>
-                `).join('');
-            }
         }
+      }
 
-        function deleteChapter(bookId, chapterId) {
-            if (confirm("Delete this chapter permanently?")) {
-                const chaptersKey = `book_${bookId}_chapters`;
-                const chapters = JSON.parse(localStorage.getItem(chaptersKey)) || [];
-                const updatedChapters = chapters.filter(c => c.id != chapterId);
-                
-                localStorage.setItem(chaptersKey, JSON.stringify(updatedChapters));
-                loadChapters();
-            }
+      async function deleteChapter(bookId, chapterId) {
+        if (confirm("Delete this chapter permanently?")) {
+          try {
+            await booksCollection
+              .doc(bookId)
+              .collection("chapters")
+              .doc(chapterId)
+              .delete();
+            loadChapters();
+          } catch (error) {
+            console.error("Error deleting chapter:", error);
+          }
         }
+      }
 
-        function shareChapter(bookTitle, chapterTitle) {
-            const shareUrl = window.location.href;
-            if (navigator.share) {
-                navigator.share({
-                    title: `${bookTitle} - ${chapterTitle}`,
-                    text: 'Read this chapter on GreenLeaf',
-                    url: shareUrl
-                }).catch(err => {
-                    console.log('Share error:', err);
-                    copyToClipboard(shareUrl);
-                });
-            } else {
-                copyToClipboard(shareUrl);
-            }
+      function shareChapter(bookTitle, chapterTitle) {
+        const shareUrl = window.location.href;
+        if (navigator.share) {
+          navigator
+            .share({
+              title: `${bookTitle} - ${chapterTitle}`,
+              text: "Read this chapter on GreenLeaf",
+              url: shareUrl,
+            })
+            .catch((err) => {
+              console.log("Share error:", err);
+              copyToClipboard(shareUrl);
+            });
+        } else {
+          copyToClipboard(shareUrl);
         }
+      }
 
-        function copyToClipboard(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            alert('Link copied to clipboard: ' + text);
+      function copyToClipboard(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        alert("Link copied to clipboard: " + text);
+      }
+
+      document.getElementById("addChapterBtn").addEventListener("click", () => {
+        if (bookId) {
+          window.location.href = `write.html?bookId=${bookId}`;
+        } else {
+          alert("Please select a book first");
         }
+      });
 
-        document.getElementById('addChapterBtn').addEventListener('click', () => {
-            if (bookId) {
-                window.location.href = `write.html?bookId=${bookId}`;
-            } else {
-                alert("Please select a book first");
-            }
-        });
-
-        // Initialization
-        document.addEventListener('DOMContentLoaded', loadChapters);
+      // Initialization
+      document.addEventListener("DOMContentLoaded", loadChapters);
     </script>
-</body>
+  </body>
 </html>

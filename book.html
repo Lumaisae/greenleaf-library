@@ -8,6 +8,9 @@
       href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Roboto:wght@300;400&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+
     <script src="js/firebase.js"></script>
     <style>
       :root {
@@ -302,6 +305,23 @@
   </head>
   <body>
     <div class="book-cover-container">
+      <button
+        style="
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          background: var(--main-green);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+        "
+        title="Back to Library"
+        onclick="location.href='mylibrary.html'"
+      >
+        back to library
+      </button>
       <div
         class="book-cover"
         id="bookCover"
@@ -380,12 +400,6 @@
         const currentUser = localStorage.getItem("username");
         const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-        console.log("Admin Check:", {
-          user: currentUser,
-          isAdmin: isAdmin,
-          isMonAdmin: currentUser?.toLowerCase() === "monadmin",
-        });
-
         if (
           currentUser &&
           currentUser.toLowerCase() === "monadmin" &&
@@ -397,40 +411,40 @@
         return false;
       }
 
-      // Load book data
-      function loadBookData() {
+      // Load book data from Firestore
+      async function loadBookData() {
         checkAdminStatus(); // Check admin first
 
         const urlParams = new URLSearchParams(window.location.search);
         const bookId = urlParams.get("id");
 
         if (bookId) {
-          const books = JSON.parse(localStorage.getItem("books")) || [];
-          const book = books.find((b) => b.id == bookId);
+          try {
+            const bookDoc = await booksCollection.doc(bookId).get();
+            if (bookDoc.exists) {
+              const book = bookDoc.data();
+              document.getElementById("bookTitle").textContent = book.title;
+              document.getElementById("bookAuthor").textContent = `By ${
+                book.author || "Unknown Author"
+              }`;
+              document.getElementById("bookDescription").textContent =
+                book.description || "No description available";
 
-          if (book) {
-            document.getElementById("bookTitle").textContent = book.title;
-            document.getElementById("bookAuthor").textContent = `By ${
-              book.author || "Unknown Author"
-            }`;
-            document.getElementById("bookDescription").textContent =
-              book.description || "No description available";
+              document.getElementById(
+                "bookCover"
+              ).style.backgroundImage = `url('${
+                book.cover ||
+                "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000"
+              }')`;
 
-            // Check for modified cover
-            const modifiedCoverKey = `book_${bookId}_modified_cover`;
-            const modifiedCover = localStorage.getItem(modifiedCoverKey);
-
-            document.getElementById(
-              "bookCover"
-            ).style.backgroundImage = `url('${
-              modifiedCover ||
-              book.cover ||
-              "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000"
-            }')`;
-
-            updateLikeCount(bookId);
-            loadComments(bookId);
-            trackView(bookId);
+              updateLikeCount(bookId);
+              loadComments(bookId);
+              trackView(bookId);
+            } else {
+              console.error("Book not found");
+            }
+          } catch (error) {
+            console.error("Error loading book data:", error);
           }
         }
       }
@@ -440,125 +454,152 @@
         return urlParams.get("id");
       }
 
-      function trackView(bookId) {
-        const viewsKey = `book_${bookId}_views`;
-        let views = parseInt(localStorage.getItem(viewsKey)) || 0;
-        views++;
-        localStorage.setItem(viewsKey, views);
+      async function trackView(bookId) {
+        try {
+          const bookRef = booksCollection.doc(bookId);
+          await bookRef.update({
+            views: firebase.firestore.FieldValue.increment(1),
+          });
+        } catch (error) {
+          console.error("Error tracking view:", error);
+        }
       }
 
       // Like functionality
-      function updateLikeCount(bookId) {
-        const likesKey = `book_${bookId}_likes`;
-        const userLikesKey = `user_${
-          localStorage.getItem("username") || "anonymous"
-        }_likes_${bookId}`;
-        const likes = JSON.parse(localStorage.getItem(likesKey)) || {
-          count: 0,
-          users: {},
-        };
-
-        document.getElementById("likeCount").textContent = likes.count;
-
-        const likeBtn = document.getElementById("likeBtn");
-        if (likes.users[userLikesKey]) {
-          likeBtn.style.backgroundColor = "#e8f5e9";
-          likeBtn.style.color = "#2a5c3d";
-        } else {
-          likeBtn.style.backgroundColor = "";
-          likeBtn.style.color = "";
+      async function updateLikeCount(bookId) {
+        try {
+          const bookDoc = await booksCollection.doc(bookId).get();
+          if (bookDoc.exists) {
+            const book = bookDoc.data();
+            document.getElementById("likeCount").textContent = book.likes || 0;
+          }
+        } catch (error) {
+          console.error("Error updating like count:", error);
         }
       }
 
-      document.getElementById("likeBtn").addEventListener("click", function () {
-        const bookId = getBookId();
-        const username = localStorage.getItem("username") || "anonymous";
-        const userLikesKey = `user_${username}_likes_${bookId}`;
+      document
+        .getElementById("likeBtn")
+        .addEventListener("click", async function () {
+          const bookId = getBookId();
+          const username = localStorage.getItem("username") || "anonymous";
 
-        if (bookId) {
-          const likesKey = `book_${bookId}_likes`;
-          let likes = JSON.parse(localStorage.getItem(likesKey)) || {
-            count: 0,
-            users: {},
-          };
-          const hasLiked = likes.users[userLikesKey];
+          if (bookId) {
+            try {
+              const bookRef = booksCollection.doc(bookId);
+              const bookDoc = await bookRef.get();
+              if (bookDoc.exists) {
+                const book = bookDoc.data();
+                const userLikesKey = `user_${username}_likes`;
 
-          if (hasLiked) {
-            likes.count--;
-            delete likes.users[userLikesKey];
-            this.style.backgroundColor = "";
-            this.style.color = "";
-          } else {
-            likes.count++;
-            likes.users[userLikesKey] = true;
-            this.style.backgroundColor = "#e8f5e9";
-            this.style.color = "#2a5c3d";
+                if (book[userLikesKey]) {
+                  await bookRef.update({
+                    likes: firebase.firestore.FieldValue.increment(-1),
+                    [userLikesKey]: firebase.firestore.FieldValue.delete(),
+                  });
+                  this.style.backgroundColor = "";
+                  this.style.color = "";
+                } else {
+                  await bookRef.update({
+                    likes: firebase.firestore.FieldValue.increment(1),
+                    [userLikesKey]: true,
+                  });
+                  this.style.backgroundColor = "#e8f5e9";
+                  this.style.color = "#2a5c3d";
+                }
+                updateLikeCount(bookId);
+              }
+            } catch (error) {
+              console.error("Error liking book:", error);
+            }
           }
-
-          localStorage.setItem(likesKey, JSON.stringify(likes));
-          document.getElementById("likeCount").textContent = likes.count;
-        }
-      });
+        });
 
       // Comments functionality
-      function loadComments(bookId) {
+      async function loadComments(bookId) {
         const commentsContainer = document.getElementById("commentsContainer");
-        const comments =
-          JSON.parse(localStorage.getItem(`book_${bookId}_comments`)) || [];
-        const currentUser = localStorage.getItem("username") || "Anonymous";
+        try {
+          console.log("Fetching comments for bookId:", bookId); // Debugging log
+          const snapshot = await commentsCollection
+            .where("bookId", "==", bookId)
+            .orderBy("timestamp", "desc")
+            .get();
 
-        commentsContainer.innerHTML = comments
-          .map((comment, index) => {
-            const canDelete = comment.author === currentUser;
-            return `
-                    <div class="comment">
-                        <div>
-                            <span class="comment-author">${
-                              comment.author
-                            }</span>
-                            <span class="comment-date">${comment.date}</span>
-                            ${
-                              canDelete
-                                ? `
-                            <span class="comment-menu">
-                                <button class="comment-menu-btn" onclick="event.stopPropagation()">⋯</button>
-                                <div class="comment-dropdown">
-                                    <a href="#" onclick="event.preventDefault(); deleteComment('${bookId}', ${index})">Delete</a>
-                                </div>
-                            </span>
-                            `
-                                : ""
-                            }
-                        </div>
-                        <p class="comment-text">${comment.text}</p>
-                    </div>
-                `;
-          })
-          .join("");
+          if (snapshot.empty) {
+            console.log("No comments found for this book."); // Debugging log
+            commentsContainer.innerHTML =
+              "<p>No comments yet. Be the first to comment!</p>";
+            return;
+          }
+
+          commentsContainer.innerHTML = snapshot.docs
+            .map((doc) => {
+              const comment = doc.data();
+              const canDelete =
+                comment.author === localStorage.getItem("username") ||
+                "Anonymous";
+              const commentDate = comment.timestamp
+                ? new Date(comment.timestamp.toDate()).toLocaleString()
+                : "Unknown Date";
+
+              return `
+                <div class="comment">
+                  <div>
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-date">${commentDate}</span>
+                    ${
+                      canDelete
+                        ? `
+                    <span class="comment-menu">
+                      <button class="comment-menu-btn" onclick="event.stopPropagation()">⋯</button>
+                      <div class="comment-dropdown">
+                        <a href="#" onclick="event.preventDefault(); deleteComment('${doc.id}')">Delete</a>
+                      </div>
+                    </span>
+                    `
+                        : ""
+                    }
+                  </div>
+                  <p class="comment-text">${comment.text}</p>
+                </div>
+              `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error loading comments:", error); // Debugging log
+          if (error.code === "failed-precondition") {
+            commentsContainer.innerHTML =
+              "<p>Error: Firestore index is missing. Please create the required index in the Firebase Console.</p>";
+          } else {
+            commentsContainer.innerHTML =
+              "<p>Error loading comments. Please try again later.</p>";
+          }
+        }
       }
 
-      function deleteComment(bookId, commentIndex) {
+      async function deleteComment(commentId) {
         if (confirm("Delete this comment?")) {
-          const commentsKey = `book_${bookId}_comments`;
-          let comments = JSON.parse(localStorage.getItem(commentsKey)) || [];
-          comments.splice(commentIndex, 1);
-          localStorage.setItem(commentsKey, JSON.stringify(comments));
-          loadComments(bookId);
+          try {
+            await commentsCollection.doc(commentId).delete();
+            loadComments(getBookId());
+          } catch (error) {
+            console.error("Error deleting comment:", error);
+          }
         }
       }
 
       // Admin functions
-      function changeCover() {
+      async function changeCover() {
         if (!checkAdminStatus()) return;
 
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
 
-        input.onchange = (e) => {
+        input.onchange = async (e) => {
           const file = e.target.files[0];
           const reader = new FileReader();
-          reader.onload = (event) => {
+          reader.onload = async (event) => {
             const newCoverUrl = event.target.result;
             document.getElementById(
               "bookCover"
@@ -566,10 +607,13 @@
 
             const bookId = getBookId();
             if (bookId) {
-              localStorage.setItem(
-                `book_${bookId}_modified_cover`,
-                newCoverUrl
-              );
+              try {
+                await booksCollection.doc(bookId).update({
+                  cover: newCoverUrl,
+                });
+              } catch (error) {
+                console.error("Error updating cover:", error);
+              }
             }
           };
           reader.readAsDataURL(file);
@@ -577,7 +621,7 @@
         input.click();
       }
 
-      function editDescription() {
+      async function editDescription() {
         if (!checkAdminStatus()) return;
 
         const currentDesc =
@@ -589,11 +633,12 @@
 
           const bookId = getBookId();
           if (bookId) {
-            const books = JSON.parse(localStorage.getItem("books")) || [];
-            const bookIndex = books.findIndex((b) => b.id == bookId);
-            if (bookIndex !== -1) {
-              books[bookIndex].description = newDesc;
-              localStorage.setItem("books", JSON.stringify(books));
+            try {
+              await booksCollection.doc(bookId).update({
+                description: newDesc,
+              });
+            } catch (error) {
+              console.error("Error updating description:", error);
             }
           }
         }
@@ -621,7 +666,7 @@
       // Comment form
       document
         .getElementById("commentForm")
-        .addEventListener("submit", function (e) {
+        .addEventListener("submit", async function (e) {
           e.preventDefault();
 
           const commentText = document
@@ -631,26 +676,18 @@
 
           const bookId = getBookId();
           if (bookId) {
-            const commentsKey = `book_${bookId}_comments`;
-            const comments =
-              JSON.parse(localStorage.getItem(commentsKey)) || [];
-
-            const username = localStorage.getItem("username") || "Anonymous";
-            const currentDate = new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            });
-
-            comments.unshift({
-              author: username,
-              date: currentDate,
-              text: commentText,
-            });
-
-            localStorage.setItem(commentsKey, JSON.stringify(comments));
-            document.getElementById("commentText").value = "";
-            loadComments(bookId);
+            try {
+              await commentsCollection.add({
+                bookId,
+                author: localStorage.getItem("username") || "Anonymous",
+                text: commentText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              });
+              document.getElementById("commentText").value = "";
+              loadComments(bookId);
+            } catch (error) {
+              console.error("Error adding comment:", error);
+            }
           }
         });
 
