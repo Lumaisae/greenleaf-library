@@ -448,20 +448,25 @@
 
       async function loadComments(chapterId) {
         const commentsContainer = document.getElementById("commentsContainer");
+        console.log("Loading comments for chapter:", chapterId);
         try {
+          // Fetch comments for the given chapter
           const commentsSnapshot = await booksCollection
             .doc(bookId)
             .collection("chapters")
-            .doc(chapterId)
+            .doc("chapter_" + currentChapter)
             .collection("comments")
             .orderBy("timestamp", "desc")
             .get();
+          console.log("commentsSnapshot", commentsSnapshot);
 
           if (commentsSnapshot.empty) {
+            // No comments found
             commentsContainer.innerHTML = "<p>No comments yet</p>";
             return;
           }
 
+          // Populate comments
           commentsContainer.innerHTML = commentsSnapshot.docs
             .map((doc) => {
               const comment = doc.data();
@@ -497,6 +502,15 @@
             .join("");
         } catch (error) {
           console.error("Error loading comments:", error);
+
+          // Handle Firestore query errors
+          if (error.code === "failed-precondition") {
+            commentsContainer.innerHTML =
+              "<p>Error: Firestore index is missing. Please create the required index in the Firebase Console.</p>";
+          } else {
+            commentsContainer.innerHTML =
+              "<p>Error loading comments. Please try again later.</p>";
+          }
         }
       }
 
